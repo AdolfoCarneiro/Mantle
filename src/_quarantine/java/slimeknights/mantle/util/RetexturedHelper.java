@@ -1,4 +1,4 @@
-package slimeknights.mantle.util;
+﻿package slimeknights.mantle.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -88,7 +88,7 @@ public final class RetexturedHelper {
     if (!name.isEmpty()) {
       ResourceLocation location = ResourceLocation.tryParse(name);
       if (location != null) {
-        return BuiltInRegistries.BLOCK.get(new ResourceLocation(name));
+        return BuiltInRegistries.BLOCK.get(ResourceLocation.parse(name));
       }
     }
     return Blocks.AIR;

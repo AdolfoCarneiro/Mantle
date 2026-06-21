@@ -1,4 +1,4 @@
-package slimeknights.mantle.fluid.transfer;
+﻿package slimeknights.mantle.fluid.transfer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -46,7 +46,7 @@ public abstract class AbstractFluidContainerTransferProvider extends GenericData
 
   /** Adds a transfer to be saved */
   protected void addTransfer(String name, IFluidContainerTransfer transfer, ICondition... conditions) {
-    addTransfer(new ResourceLocation(modId, name), transfer, conditions);
+    addTransfer(ResourceLocation.fromNamespaceAndPath(modId, name), transfer, conditions);
   }
 
   /** Adds generic fill and empty for a container */

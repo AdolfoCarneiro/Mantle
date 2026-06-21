@@ -1,4 +1,4 @@
-package slimeknights.mantle.fluid.texture;
+﻿package slimeknights.mantle.fluid.texture;
 
 import com.google.gson.JsonElement;
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +28,7 @@ public class FluidTextureManager implements IEarlySafeManagerReloadListener {
   /** Map of fluid type to texture */
   private Map<FluidType,FluidTexture> textures = Collections.emptyMap();
   /** Fallback texture instance */
-  private static final FluidTexture FALLBACK = new FluidTexture(new ResourceLocation("block/water_still"), new ResourceLocation("block/water_flow"), null, null, 0, -1, -1, false, null, 0, 0);
+  private static final FluidTexture FALLBACK = new FluidTexture(ResourceLocation.parse("block/water_still"), ResourceLocation.parse("block/water_flow"), null, null, 0, -1, -1, false, null, 0, 0);
 
   private FluidTextureManager() {}
 

@@ -1,4 +1,4 @@
-package slimeknights.mantle.client.screen.book;
+﻿package slimeknights.mantle.client.screen.book;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -806,7 +806,7 @@ public class BookScreen extends Screen {
     }
 
     public Advancement getAdvancement(String id) {
-      return this.nameCache.get(new ResourceLocation(id));
+      return this.nameCache.get(ResourceLocation.parse(id));
     }
 
     @Override

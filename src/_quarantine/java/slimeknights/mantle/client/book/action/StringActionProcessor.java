@@ -1,4 +1,4 @@
-package slimeknights.mantle.client.book.action;
+﻿package slimeknights.mantle.client.book.action;
 
 import net.minecraft.resources.ResourceLocation;
 import slimeknights.mantle.client.book.action.protocol.ActionProtocol;
@@ -31,7 +31,7 @@ public class StringActionProcessor {
     if(!id.contains(":"))
       id = "mantle:" + id;
 
-    ResourceLocation protoId = new ResourceLocation(id);
+    ResourceLocation protoId = ResourceLocation.parse(id);
     String protoParam = action.substring(action.indexOf(PROTOCOL_SEPARATOR) + PROTOCOL_SEPARATOR.length());
 
     if (protocols.containsKey(protoId)) {

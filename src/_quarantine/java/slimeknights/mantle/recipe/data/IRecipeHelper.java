@@ -1,4 +1,4 @@
-package slimeknights.mantle.recipe.data;
+﻿package slimeknights.mantle.recipe.data;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -35,7 +35,7 @@ public interface IRecipeHelper {
    * @return  Location for the mod
    */
   default ResourceLocation location(String name) {
-    return new ResourceLocation(getModId(), name);
+    return ResourceLocation.fromNamespaceAndPath(getModId(), name);
   }
 
   /**
@@ -163,7 +163,7 @@ public interface IRecipeHelper {
    * @return  Tag instance
    */
   default TagKey<Item> getItemTag(String modId, String name) {
-    return TagKey.create(Registries.ITEM, new ResourceLocation(modId, name));
+    return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(modId, name));
   }
 
   /**
@@ -173,7 +173,7 @@ public interface IRecipeHelper {
    * @return  Tag instance
    */
   default TagKey<Fluid> getFluidTag(String modId, String name) {
-    return TagKey.create(Registries.FLUID, new ResourceLocation(modId, name));
+    return TagKey.create(Registries.FLUID, ResourceLocation.fromNamespaceAndPath(modId, name));
   }
 
   /**

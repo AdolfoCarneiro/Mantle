@@ -1,4 +1,4 @@
-package slimeknights.mantle.client.book.repository;
+﻿package slimeknights.mantle.client.book.repository;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -39,7 +39,7 @@ public abstract class BookRepository {
       return false;
     }
 
-    return this.resourceExists(new ResourceLocation(location));
+    return this.resourceExists(ResourceLocation.parse(location));
   }
 
   /** Checks if the given resource exists */

@@ -1,4 +1,4 @@
-package slimeknights.mantle.client.book.data.element;
+﻿package slimeknights.mantle.client.book.data.element;
 
 import net.minecraft.resources.ResourceLocation;
 import slimeknights.mantle.client.book.repository.BookRepository;
@@ -49,7 +49,7 @@ public class ImageData extends DataLocation {
   }
 
   static {
-    MISSING.location = new ResourceLocation("mantle:textures/gui/missingno.png");
+    MISSING.location = ResourceLocation.parse("mantle:textures/gui/missingno.png");
     MISSING.texWidth = 32;
     MISSING.texHeight = 32;
     MISSING.uw = 32;

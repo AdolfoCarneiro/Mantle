@@ -1,4 +1,4 @@
-package slimeknights.mantle.client;
+﻿package slimeknights.mantle.client;
 
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -25,7 +25,7 @@ import slimeknights.mantle.config.Config.HeartRenderer;
 import java.util.Random;
 
 public class ExtraHeartRenderHandler {
-  private static final ResourceLocation ICON_HEARTS = new ResourceLocation(Mantle.modId, "textures/gui/extra_hearts.png");
+  private static final ResourceLocation ICON_HEARTS = ResourceLocation.fromNamespaceAndPath(Mantle.modId, "textures/gui/extra_hearts.png");
   private static final ResourceLocation ICON_VANILLA = Gui.GUI_ICONS_LOCATION;
   /** Number of heart color variants */
   private static final int HEART_VARIANTS = 12;

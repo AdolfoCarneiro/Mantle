@@ -1,4 +1,4 @@
-package slimeknights.mantle.data.registry;
+﻿package slimeknights.mantle.data.registry;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -86,7 +86,7 @@ public abstract class AbstractNamedComponentRegistry<T> implements ResourceLocat
     if (key.isEmpty()) {
       return null;
     }
-    return decodeInternal(new ResourceLocation(key));
+    return decodeInternal(ResourceLocation.parse(key));
   }
 
 
