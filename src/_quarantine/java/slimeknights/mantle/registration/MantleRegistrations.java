@@ -1,12 +1,11 @@
 package slimeknights.mantle.registration;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.registries.ObjectHolder;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import slimeknights.mantle.Mantle;
 import slimeknights.mantle.block.entity.MantleHangingSignBlockEntity;
 import slimeknights.mantle.block.entity.MantleSignBlockEntity;
-
-import static slimeknights.mantle.registration.RegistrationHelper.injected;
 
 /**
  * Various objects registered under Mantle
@@ -14,9 +13,13 @@ import static slimeknights.mantle.registration.RegistrationHelper.injected;
 public class MantleRegistrations {
   private MantleRegistrations() {}
 
-  @ObjectHolder(registryName = "minecraft:block_entity_type", value = Mantle.modId+":sign")
-  public static final BlockEntityType<MantleSignBlockEntity> SIGN = injected();
+  @SuppressWarnings("unchecked")
+  public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MantleSignBlockEntity>> SIGN =
+      (DeferredHolder<BlockEntityType<?>, BlockEntityType<MantleSignBlockEntity>>)(DeferredHolder<?, ?>)
+      DeferredHolder.create(Registries.BLOCK_ENTITY_TYPE, Mantle.getResource("sign"));
 
-  @ObjectHolder(registryName = "minecraft:block_entity_type", value = Mantle.modId+":hanging_sign")
-  public static final BlockEntityType<MantleHangingSignBlockEntity> HANGING_SIGN = injected();
+  @SuppressWarnings("unchecked")
+  public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MantleHangingSignBlockEntity>> HANGING_SIGN =
+      (DeferredHolder<BlockEntityType<?>, BlockEntityType<MantleHangingSignBlockEntity>>)(DeferredHolder<?, ?>)
+      DeferredHolder.create(Registries.BLOCK_ENTITY_TYPE, Mantle.getResource("hanging_sign"));
 }

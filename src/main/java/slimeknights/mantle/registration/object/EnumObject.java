@@ -95,7 +95,7 @@ public class EnumObject<T extends Enum<T>, I> implements MultiObject<I> {
   }
 
   /**
-   * Gets a list of values in this enum object. Will error if a {@link net.minecraftforge.registries.RegistryObject} cannot be resolved, unlike {@link #forEach(Consumer)}
+   * Gets a list of values in this enum object. Will error if a registry object cannot be resolved, unlike {@link #forEach(Consumer)}
    * @return  List of values in the object
    */
   @Override
@@ -105,7 +105,7 @@ public class EnumObject<T extends Enum<T>, I> implements MultiObject<I> {
 
   /**
    * Runs the given consumer on each key in the enum object.
-   * Will ignore any suppliers that have not yet resolved, to work around a Forge error with registry events failing.
+   * Will ignore any suppliers that have not yet resolved, to work around a registry error with registry events failing.
    * @param consumer  Consumer passed each key value pair
    */
   public void forEach(BiConsumer<T, ? super I> consumer) {
@@ -125,7 +125,7 @@ public class EnumObject<T extends Enum<T>, I> implements MultiObject<I> {
 
   /**
    * Runs the given consumer on each key in the enum object.
-   * Will ignore any suppliers that have not yet resolved, to work around a Forge error with registry events failing.
+   * Will ignore any suppliers that have not yet resolved, to work around a registry error with registry events failing.
    * @param consumer  Consumer passed each key value pair
    */
   @Override
@@ -175,7 +175,6 @@ public class EnumObject<T extends Enum<T>, I> implements MultiObject<I> {
      * @return  Builder instance
      */
     public Builder<T,I> put(T key, I value) {
-      // TODO: should we use holders? is there a practical way to fetch one?
       this.map.put(key, () -> value);
       return this;
     }

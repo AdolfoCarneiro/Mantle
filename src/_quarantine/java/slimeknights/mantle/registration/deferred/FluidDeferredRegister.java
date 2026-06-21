@@ -14,12 +14,11 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
-import net.minecraftforge.fluids.ForgeFlowingFluid.Properties;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import slimeknights.mantle.block.fluid.BurningLiquidBlock;
 import slimeknights.mantle.block.fluid.MobEffectLiquidBlock;
 import slimeknights.mantle.fluid.InvertedFluid;
@@ -37,7 +36,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Deferred register solving the nightmare that is registering fluids with Forge
+ * Deferred register solving the nightmare that is registering fluids with NeoForge
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
@@ -47,7 +46,7 @@ public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
 
   public FluidDeferredRegister(String modID) {
     super(Registries.FLUID, modID);
-    this.fluidTypeRegister = SynchronizedDeferredRegister.create(ForgeRegistries.Keys.FLUID_TYPES, modID);
+    this.fluidTypeRegister = SynchronizedDeferredRegister.create(NeoForgeRegistries.Keys.FLUID_TYPES, modID);
     this.blockRegister = SynchronizedDeferredRegister.create(Registries.BLOCK, modID);
     this.itemRegister = SynchronizedDeferredRegister.create(Registries.ITEM, modID);
   }
@@ -67,7 +66,7 @@ public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
    * @param <I>   Fluid type
    * @return  Fluid to supply
    */
-  public <I extends FluidType> RegistryObject<I> registerType(String name, Supplier<? extends I> sup) {
+  public <I extends FluidType> DeferredHolder<FluidType, I> registerType(String name, Supplier<? extends I> sup) {
     return fluidTypeRegister.register(name, sup);
   }
 
@@ -78,7 +77,7 @@ public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
    * @param <I>   Fluid type
    * @return  Fluid to supply
    */
-  public <I extends Fluid> RegistryObject<I> registerFluid(String name, Supplier<? extends I> sup) {
+  public <I extends Fluid> DeferredHolder<Fluid, I> registerFluid(String name, Supplier<? extends I> sup) {
     return register.register(name, sup);
   }
 
@@ -200,14 +199,14 @@ public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
       if (type == null) {
         this.type();
       }
-      RegistryObject<F> fluid = registerFluid(name, () -> constructor.apply(this));
+      DeferredHolder<Fluid, F> fluid = registerFluid(name, () -> constructor.apply(this));
       stillDelayed.setSupplier(fluid);
       return new FluidObject<>(resource(name), commonTag, type, fluid);
     }
 
     /** Builds a flowing fluid with the default constructors */
-    public FlowingFluidObject<ForgeFlowingFluid> flowing() {
-      return flowing(ForgeFlowingFluid.Source::new, ForgeFlowingFluid.Flowing::new);
+    public FlowingFluidObject<BaseFlowingFluid> flowing() {
+      return flowing(BaseFlowingFluid.Source::new, BaseFlowingFluid.Flowing::new);
     }
 
     /** Builds a flowing fluid with the default constructors */
@@ -217,19 +216,19 @@ public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
 
     /**
      * Builds a flowing fluid with the given constructors
-     * @param createStill     Still constructor taking forge fluid properties, will contain the type, bucket, block, and flowing forms
-     * @param createFlowing   Flowing constructor taking forge fluid properties, will contain the type, bucket, block, and still forms
+     * @param createStill     Still constructor taking NeoForge fluid properties, will contain the type, bucket, block, and flowing forms
+     * @param createFlowing   Flowing constructor taking NeoForge fluid properties, will contain the type, bucket, block, and still forms
      * @param <F>  Type of fluids being created
      * @return  Flowing fluid object instance
      */
-    public <F extends FlowingFluid> FlowingFluidObject<F> flowing(Function<Properties,? extends F> createStill, Function<Properties,? extends F> createFlowing) {
+    public <F extends FlowingFluid> FlowingFluidObject<F> flowing(Function<BaseFlowingFluid.Properties,? extends F> createStill, Function<BaseFlowingFluid.Properties,? extends F> createFlowing) {
       if (type == null) {
         this.type();
       }
 
       // create props with the suppliers
       DelayedSupplier<FlowingFluid> flowingDelayed = new DelayedSupplier<>();
-      Properties props = build(type, stillDelayed, flowingDelayed);
+      BaseFlowingFluid.Properties props = build(type, stillDelayed, flowingDelayed);
 
       // create fluids now that we have props
       Supplier<F> still = registerFluid(name, () -> createStill.apply(props));

@@ -1,4 +1,4 @@
-﻿package slimeknights.mantle.registration.object;
+package slimeknights.mantle.registration.object;
 
 import lombok.Getter;
 import net.minecraft.core.registries.BuiltInRegistries;

@@ -1,11 +1,11 @@
-﻿package slimeknights.mantle.registration.deferred;
+package slimeknights.mantle.registration.deferred;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import slimeknights.mantle.registration.object.EnumObject;
 
 import java.util.Locale;
@@ -23,7 +23,7 @@ public abstract class DeferredRegisterWrapper<T> {
   /** Mod ID for registration */
   protected final String modID;
 
-  protected DeferredRegisterWrapper(ResourceKey<Registry<T>> reg, String modID) {
+  protected DeferredRegisterWrapper(ResourceKey<? extends Registry<T>> reg, String modID) {
     this(DeferredRegister.create(reg, modID), modID);
   }
 

@@ -1,9 +1,8 @@
 package slimeknights.mantle.registration.adapter;
 
+import net.minecraft.core.Registry;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
-import net.minecraftforge.fluids.ForgeFlowingFluid.Properties;
-import net.minecraftforge.registries.IForgeRegistry;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import slimeknights.mantle.registration.DelayedSupplier;
 import slimeknights.mantle.registration.FluidBuilder;
 
@@ -15,12 +14,12 @@ import java.util.function.Function;
 @SuppressWarnings("unused")
 public class FluidRegistryAdapter extends RegistryAdapter<Fluid> {
   /** @inheritDoc */
-  public FluidRegistryAdapter(IForgeRegistry<Fluid> registry) {
+  public FluidRegistryAdapter(Registry<Fluid> registry) {
     super(registry);
   }
 
   /** @inheritDoc */
-  public FluidRegistryAdapter(IForgeRegistry<Fluid> registry, String modId) {
+  public FluidRegistryAdapter(Registry<Fluid> registry, String modId) {
     super(registry, modId);
   }
 
@@ -33,16 +32,15 @@ public class FluidRegistryAdapter extends RegistryAdapter<Fluid> {
    * @param <F>       Fluid type
    * @return  Still fluid instance
    */
-  public <F extends ForgeFlowingFluid> F register(FluidBuilder<?> builder, Function<Properties, F> still, Function<Properties,F> flowing, String name) {
+  public <F extends BaseFlowingFluid> F register(FluidBuilder<?> builder, Function<BaseFlowingFluid.Properties, F> still, Function<BaseFlowingFluid.Properties,F> flowing, String name) {
     // have to create still and flowing later, as the props need these suppliers
     DelayedSupplier<Fluid> stillDelayed = new DelayedSupplier<>();
     DelayedSupplier<Fluid> flowingDelayed = new DelayedSupplier<>();
 
     // create props with the suppliers
-    Properties props = builder.build(builder.getType(), stillDelayed, flowingDelayed);
+    BaseFlowingFluid.Properties props = builder.build(builder.getType(), stillDelayed, flowingDelayed);
 
     // create fluids now that we have props
-    // TODO: should we be using holders?
     F stillFluid = register(still.apply(props), name);
     stillDelayed.setSupplier(() -> stillFluid);
     F flowingFluid = register(flowing.apply(props), "flowing_" + name);
@@ -58,7 +56,7 @@ public class FluidRegistryAdapter extends RegistryAdapter<Fluid> {
    * @param name     Fluid name
    * @return  Still fluid
    */
-  public ForgeFlowingFluid register(FluidBuilder<?> builder, String name) {
-    return register(builder, ForgeFlowingFluid.Source::new, ForgeFlowingFluid.Flowing::new, name);
+  public BaseFlowingFluid register(FluidBuilder<?> builder, String name) {
+    return register(builder, BaseFlowingFluid.Source::new, BaseFlowingFluid.Flowing::new, name);
   }
 }
