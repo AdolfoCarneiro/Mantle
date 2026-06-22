@@ -1,18 +1,27 @@
 package slimeknights.mantle.recipe.condition;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
-import slimeknights.mantle.Mantle;
+import net.neoforged.neoforge.common.conditions.ICondition;
 import slimeknights.mantle.loot.MantleLoot;
 
 /** Inverted form of {@link TagEmptyCondition} as filled is way more common a desire than empty. */
 public class TagFilledCondition<T> extends TagCondition<T> implements LootItemCondition {
-  public static final Serializer<TagFilledCondition<?>> SERIALIZER = new Serializer<>(Mantle.getResource("tag_filled"), TagFilledCondition::new);
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public static final MapCodec<TagFilledCondition<?>> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
+    ResourceLocation.CODEC.optionalFieldOf("registry", Registries.ITEM.location())
+      .forGetter(c -> c.getTag().registry().location()),
+    ResourceLocation.CODEC.fieldOf("tag").forGetter(c -> c.getTag().location())
+  ).apply(inst, (regLoc, tagLoc) ->
+    new TagFilledCondition(TagKey.create(ResourceKey.createRegistryKey(regLoc), tagLoc))));
 
   public TagFilledCondition(TagKey<T> tag) {
     super(tag);
@@ -23,8 +32,8 @@ public class TagFilledCondition<T> extends TagCondition<T> implements LootItemCo
   }
 
   @Override
-  public ResourceLocation getID() {
-    return SERIALIZER.getID();
+  public MapCodec<? extends ICondition> codec() {
+    return CODEC;
   }
 
   @Override

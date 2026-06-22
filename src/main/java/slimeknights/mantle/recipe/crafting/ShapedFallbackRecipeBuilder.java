@@ -1,19 +1,15 @@
 package slimeknights.mantle.recipe.crafting;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import slimeknights.mantle.recipe.MantleRecipes;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
 
 /** Builder for a shaped recipe with fallbacks */
 @SuppressWarnings("unused")
@@ -23,7 +19,7 @@ public class ShapedFallbackRecipeBuilder {
   private final List<ResourceLocation> alternatives = new ArrayList<>();
 
   /**
-   * Adds a single alternative to this recipe. Any matching alternative causes this recipe to fail
+   * Adds a single alternative to this recipe
    * @param location  Alternative
    * @return  Builder instance
    */
@@ -33,7 +29,7 @@ public class ShapedFallbackRecipeBuilder {
   }
 
   /**
-   * Adds a list of alternatives to this recipe. Any matching alternative causes this recipe to fail
+   * Adds a list of alternatives to this recipe
    * @param locations  Alternative list
    * @return  Builder instance
    */
@@ -42,52 +38,39 @@ public class ShapedFallbackRecipeBuilder {
     return this;
   }
 
-  /**
-   * Builds the recipe using the output as the name
-   * @param consumer  Recipe consumer
-   */
-  public void build(Consumer<FinishedRecipe> consumer) {
-    base.save(base -> consumer.accept(new Result(base, alternatives)));
+  /** Builds the recipe using the output as the name */
+  public void build(RecipeOutput output) {
+    List<ResourceLocation> alts = List.copyOf(alternatives);
+    base.save(wrap(output, alts));
   }
 
   /**
    * Builds the recipe using the given ID
-   * @param consumer  Recipe consumer
-   * @param id        Recipe ID
+   * @param output  Recipe output
+   * @param id      Recipe ID
    */
-  public void build(Consumer<FinishedRecipe> consumer, ResourceLocation id) {
-    base.save(base -> consumer.accept(new Result(base, alternatives)), id);
+  public void build(RecipeOutput output, ResourceLocation id) {
+    List<ResourceLocation> alts = List.copyOf(alternatives);
+    base.save(wrap(output, alts), id);
   }
 
-  private record Result(FinishedRecipe base, List<ResourceLocation> alternatives) implements FinishedRecipe {
-    @Override
-    public void serializeRecipeData(JsonObject json) {
-      base.serializeRecipeData(json);
-      json.add("alternatives", alternatives.stream()
-                                           .map(ResourceLocation::toString)
-                                           .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
-    }
+  private static RecipeOutput wrap(RecipeOutput output, List<ResourceLocation> alts) {
+    return new RecipeOutput() {
+      @Override
+      public void accept(ResourceLocation id, net.minecraft.world.item.crafting.Recipe<?> recipe, AdvancementHolder advancement) {
+        ShapedFallbackRecipe fallback;
+        if (recipe instanceof ShapedRecipe shaped) {
+          fallback = new ShapedFallbackRecipe(shaped, alts);
+        } else {
+          throw new IllegalStateException("Expected ShapedRecipe, got " + recipe.getClass());
+        }
+        output.accept(id, fallback, advancement);
+      }
 
-    @Override
-    public RecipeSerializer<?> getType() {
-      return MantleRecipes.CRAFTING_SHAPED_FALLBACK.get();
-    }
-
-    @Override
-    public ResourceLocation getId() {
-      return base.getId();
-    }
-
-    @Nullable
-    @Override
-    public JsonObject serializeAdvancement() {
-      return base.serializeAdvancement();
-    }
-
-    @Nullable
-    @Override
-    public ResourceLocation getAdvancementId() {
-      return base.getAdvancementId();
-    }
+      @Override
+      public net.minecraft.advancements.Advancement.Builder advancement() {
+        return output.advancement();
+      }
+    };
   }
 }

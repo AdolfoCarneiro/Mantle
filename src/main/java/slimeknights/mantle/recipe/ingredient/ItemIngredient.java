@@ -1,12 +1,13 @@
 package slimeknights.mantle.recipe.ingredient;
 
 import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.common.crafting.AbstractIngredient;
+import net.neoforged.neoforge.common.crafting.ICustomIngredient;
 import slimeknights.mantle.data.loadable.Loadable;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.data.loadable.array.ArrayLoadable;
@@ -16,12 +17,12 @@ import slimeknights.mantle.data.loadable.field.UnsyncedField;
 import slimeknights.mantle.util.typed.TypedMap;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /** Abstract ingredient that matches a list of items or a tag, mirroring the vanilla syntax */
-public abstract class ItemIngredient extends AbstractIngredient {
+public abstract class ItemIngredient implements ICustomIngredient {
   /** Field for the item tag */
   protected static final LoadableField<TagKey<Item>,ItemIngredient> TAG_FIELD = new UnsyncedField<>(Loadables.ITEM_TAG.nullableField("tag", i -> i.tag));
 
@@ -29,19 +30,9 @@ public abstract class ItemIngredient extends AbstractIngredient {
   @Nullable
   protected final TagKey<Item> tag;
 
-  /** Constructor letting you supply your own item stream */
-  protected ItemIngredient(List<Item> items, @Nullable TagKey<Item> tag, Stream<? extends Value> values) {
-    super(values);
+  protected ItemIngredient(List<Item> items, @Nullable TagKey<Item> tag) {
     this.items = items;
     this.tag = tag;
-  }
-
-  /** Constructor using default stream of items */
-  protected ItemIngredient(List<Item> items, @Nullable TagKey<Item> tag) {
-    this(items, tag, Stream.concat(
-      items.stream().map(item -> new ItemValue(new ItemStack(item))),
-      Stream.ofNullable(tag).map(TagValue::new))
-    );
   }
 
   /** Maps the list to a list of items */
@@ -50,10 +41,28 @@ public abstract class ItemIngredient extends AbstractIngredient {
   }
 
   @Override
-  public boolean test(@Nullable ItemStack stack) {
-    // super is going to do list iteration, but for tag checks it's way easier to just check directly
-    // also ensures we never match empty just because our lists are empty
+  public boolean test(ItemStack stack) {
     return stack != null && (items.contains(stack.getItem()) || tag != null && stack.is(tag));
+  }
+
+  @Override
+  public Stream<ItemStack> getItems() {
+    Stream<ItemStack> fromItems = items.stream().map(ItemStack::new);
+    Stream<ItemStack> fromTag = tag == null ? Stream.empty() :
+      BuiltInRegistries.ITEM.getTagOrEmpty(tag).stream().map(h -> new ItemStack(h.value()));
+    return Stream.concat(fromItems, fromTag);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ItemIngredient that)) return false;
+    return items.equals(that.items) && Objects.equals(tag, that.tag);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(items, tag);
   }
 
   /** Custom field that syncs the item tag as items to the client */
@@ -75,14 +84,17 @@ public abstract class ItemIngredient extends AbstractIngredient {
     }
 
     @Override
-    public List<Item> decode(FriendlyByteBuf buffer, TypedMap context) {
+    public List<Item> decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
       return ITEM_LIST.decode(buffer, context);
     }
 
     @Override
-    public void encode(FriendlyByteBuf buffer, ItemIngredient parent) {
-      // sync both tag and item values to client
-      ITEM_LIST.encode(buffer, Arrays.stream(parent.getItems()).map(ItemStack::getItem).toList());
+    public void encode(RegistryFriendlyByteBuf buffer, ItemIngredient parent) {
+      // expand tag on server so client receives flat item list
+      Stream<Item> fromItems = parent.items.stream();
+      Stream<Item> fromTag = parent.tag == null ? Stream.empty() :
+        BuiltInRegistries.ITEM.getTagOrEmpty(parent.tag).stream().map(h -> h.value());
+      ITEM_LIST.encode(buffer, Stream.concat(fromItems, fromTag).toList());
     }
   }
 }

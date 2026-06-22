@@ -1,18 +1,27 @@
 package slimeknights.mantle.recipe.condition;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
-import slimeknights.mantle.Mantle;
+import net.neoforged.neoforge.common.conditions.ICondition;
 import slimeknights.mantle.loot.MantleLoot;
 
-/** Condition that checks when a tag is empty. Same as {@link net.minecraftforge.common.crafting.conditions.TagEmptyCondition} but for any registry */
+/** Condition that checks when a tag is empty. Works for any registry */
 public class TagEmptyCondition<T> extends TagCondition<T> implements LootItemCondition {
-  public static final Serializer<TagEmptyCondition<?>> SERIALIZER = new Serializer<>(Mantle.getResource("tag_empty"), TagEmptyCondition::new);
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public static final MapCodec<TagEmptyCondition<?>> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
+    ResourceLocation.CODEC.optionalFieldOf("registry", Registries.ITEM.location())
+      .forGetter(c -> c.getTag().registry().location()),
+    ResourceLocation.CODEC.fieldOf("tag").forGetter(c -> c.getTag().location())
+  ).apply(inst, (regLoc, tagLoc) ->
+    new TagEmptyCondition(TagKey.create(ResourceKey.createRegistryKey(regLoc), tagLoc))));
 
   public TagEmptyCondition(TagKey<T> tag) {
     super(tag);
@@ -23,8 +32,8 @@ public class TagEmptyCondition<T> extends TagCondition<T> implements LootItemCon
   }
 
   @Override
-  public ResourceLocation getID() {
-    return SERIALIZER.getID();
+  public MapCodec<? extends ICondition> codec() {
+    return CODEC;
   }
 
   @Override

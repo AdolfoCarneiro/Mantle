@@ -1,63 +1,72 @@
 package slimeknights.mantle.recipe.ingredient;
 
-import com.google.gson.JsonElement;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.common.crafting.IIngredientSerializer;
+import net.neoforged.neoforge.common.crafting.IngredientType;
 import org.jetbrains.annotations.Nullable;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
-import slimeknights.mantle.recipe.helper.LoadableIngredientSerializer;
+import slimeknights.mantle.recipe.MantleRecipes;
+import slimeknights.mantle.util.typed.TypedMap;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /** Simple ingredient checking for an item with a specific potion */
 public class PotionIngredient extends ItemIngredient {
-  /** Ingredient serializer instance */
-  public static final LoadableIngredientSerializer<PotionIngredient> SERIALIZER = new LoadableIngredientSerializer<>(RecordLoadable.create(
+  public static final RecordLoadable<PotionIngredient> LOADABLE = RecordLoadable.create(
     ItemsField.INSTANCE, TAG_FIELD,
-    Loadables.POTION.defaultField("potion", Potions.EMPTY, false, i -> i.potion),
-    PotionIngredient::new
-  ));
+    Loadables.POTION.requiredField("potion", i -> i.potion),
+    PotionIngredient::new);
+  public static final MapCodec<PotionIngredient> CODEC = LOADABLE.mapCodec(TypedMap.EMPTY);
+  public static final StreamCodec<RegistryFriendlyByteBuf, PotionIngredient> STREAM_CODEC = LOADABLE;
 
   private final Potion potion;
+
   protected PotionIngredient(List<Item> items, @Nullable TagKey<Item> itemTag, Potion potion) {
-    // potion is added in directly to the parent value stream
-    super(items, itemTag, Stream.concat(
-      items.stream().map(item -> new ItemValue(PotionUtils.setPotion(new ItemStack(item), potion))),
-      Stream.ofNullable(itemTag).map(tag -> new PotionTagValue(tag, potion)))
-    );
+    super(items, itemTag);
     this.potion = potion;
   }
 
-  /** Creates a potion ingredient matching a list of items */
   public static PotionIngredient of(Potion potion, List<ItemLike> items) {
     return new PotionIngredient(toItem(items), null, potion);
   }
 
-  /** Creates a potion ingredient matching a list of items */
   public static PotionIngredient of(Potion potion, ItemLike... items) {
     return of(potion, Arrays.asList(items));
   }
 
-  /** Creates a potion ingredient matching a tag */
   public static PotionIngredient of(Potion potion, TagKey<Item> tag) {
     return new PotionIngredient(List.of(), tag, potion);
   }
 
   @Override
   public boolean test(@Nullable ItemStack stack) {
-    // stack must match, any item must match, and potion must match
-    return stack != null && super.test(stack) && PotionUtils.getPotion(stack) == potion;
+    if (stack == null || !super.test(stack)) return false;
+    PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
+    if (contents == null) return false;
+    return contents.potion().isPresent() && contents.potion().get().value() == potion;
+  }
+
+  @Override
+  public Stream<ItemStack> getItems() {
+    Holder<Potion> holder = BuiltInRegistries.POTION.wrapAsHolder(potion);
+    Stream<ItemStack> fromItems = items.stream().map(item -> PotionContents.createItemStack(item, holder));
+    Stream<ItemStack> fromTag = tag == null ? Stream.empty() :
+      BuiltInRegistries.ITEM.getTagOrEmpty(tag).stream().map(h -> PotionContents.createItemStack(h.value(), holder));
+    return Stream.concat(fromItems, fromTag);
   }
 
   @Override
@@ -66,28 +75,18 @@ public class PotionIngredient extends ItemIngredient {
   }
 
   @Override
-  public IIngredientSerializer<? extends Ingredient> getSerializer() {
-    return SERIALIZER;
+  public IngredientType<?> getType() {
+    return MantleRecipes.POTION_INGREDIENT.get();
   }
 
   @Override
-  public JsonElement toJson() {
-    return SERIALIZER.serialize(this);
+  public boolean equals(Object o) {
+    if (!super.equals(o)) return false;
+    return o instanceof PotionIngredient that && potion == that.potion;
   }
 
-  /** Tag value that sets the potion on each returned item */
-  private static class PotionTagValue extends TagValue {
-    private final Potion potion;
-    public PotionTagValue(TagKey<Item> tag, Potion potion) {
-      super(tag);
-      this.potion = potion;
-    }
-
-    @Override
-    public Collection<ItemStack> getItems() {
-      return super.getItems().stream()
-        .map(item -> PotionUtils.setPotion(item, potion))
-        .toList();
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), potion);
   }
 }
