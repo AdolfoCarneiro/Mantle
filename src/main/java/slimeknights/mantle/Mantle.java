@@ -33,7 +33,8 @@ public class Mantle {
   public Mantle(IEventBus modEventBus, ModContainer modContainer) {
     instance = this;
     modEventBus.addListener(MantlePayloadInit::register);
-    logger.info("Mantle Phase 1 Task 6: network layer loaded.");
+    modEventBus.addListener(MantleCapabilities::register);
+    logger.info("Mantle Phase 1 Task 7: capabilities layer loaded.");
     // Phase 1 restores: config registration, MantleTags, network, recipes,
     // capabilities, datagen, predicates, client events. Intentionally empty here.
   }
