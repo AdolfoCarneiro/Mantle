@@ -1,4 +1,4 @@
-﻿package slimeknights.mantle.recipe.data;
+package slimeknights.mantle.recipe.data;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;

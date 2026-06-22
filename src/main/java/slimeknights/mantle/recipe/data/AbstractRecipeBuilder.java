@@ -1,4 +1,4 @@
-﻿package slimeknights.mantle.recipe.data;
+package slimeknights.mantle.recipe.data;
 
 import com.google.gson.JsonObject;
 import lombok.Getter;

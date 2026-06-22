@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.ModContainer;
+import slimeknights.mantle.network.MantlePayloadInit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,7 +32,8 @@ public class Mantle {
 
   public Mantle(IEventBus modEventBus, ModContainer modContainer) {
     instance = this;
-    logger.info("Mantle Phase 0 stub loaded (NeoForge 1.21.1). Subsystems quarantined.");
+    modEventBus.addListener(MantlePayloadInit::register);
+    logger.info("Mantle Phase 1 Task 6: network layer loaded.");
     // Phase 1 restores: config registration, MantleTags, network, recipes,
     // capabilities, datagen, predicates, client events. Intentionally empty here.
   }

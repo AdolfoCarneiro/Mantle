@@ -1,4 +1,4 @@
-﻿package slimeknights.mantle.fluid.texture;
+package slimeknights.mantle.fluid.texture;
 
 import com.google.gson.JsonElement;
 import net.minecraft.resources.ResourceLocation;

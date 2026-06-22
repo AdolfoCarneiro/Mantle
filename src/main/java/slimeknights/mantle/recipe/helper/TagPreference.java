@@ -1,4 +1,4 @@
-﻿package slimeknights.mantle.recipe.helper;
+package slimeknights.mantle.recipe.helper;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;

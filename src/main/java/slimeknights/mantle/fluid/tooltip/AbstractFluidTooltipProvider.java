@@ -1,4 +1,4 @@
-﻿package slimeknights.mantle.fluid.tooltip;
+package slimeknights.mantle.fluid.tooltip;
 
 import com.google.gson.JsonObject;
 import lombok.AccessLevel;
