@@ -1,4 +1,4 @@
-﻿package slimeknights.mantle.data.datamap;
+package slimeknights.mantle.data.datamap;
 
 import com.google.gson.JsonObject;
 import lombok.AccessLevel;
