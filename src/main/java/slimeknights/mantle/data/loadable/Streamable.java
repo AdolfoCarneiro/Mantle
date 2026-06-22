@@ -1,11 +1,12 @@
 package slimeknights.mantle.data.loadable;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
 import slimeknights.mantle.util.typed.TypedMap;
 
 /** This interface partially implements Mojang's future {@code StreamCodec} for the sake of ensuring all {@link Loadable} are automatically compatible with stream codecs. */
-public interface Streamable<T> {
+public interface Streamable<T> extends StreamCodec<RegistryFriendlyByteBuf, T> {
   /**
    * Decodes this loadable from the network
    * @param buffer  Buffer instance
@@ -13,11 +14,12 @@ public interface Streamable<T> {
    * @return  Parsed object
    * @throws io.netty.handler.codec.DecoderException  If unable to decode
    */
-  T decode(FriendlyByteBuf buffer, TypedMap context);
+  T decode(RegistryFriendlyByteBuf buffer, TypedMap context);
 
-  /** Same as {@link #decode(FriendlyByteBuf, TypedMap)} but passes {@link TypedMap#EMPTY} for context. */
+  /** Same as {@link #decode(RegistryFriendlyByteBuf, TypedMap)} but passes {@link TypedMap#EMPTY} for context. */
   @NonExtendable
-  default T decode(FriendlyByteBuf buffer) {
+  @Override
+  default T decode(RegistryFriendlyByteBuf buffer) {
     return decode(buffer, TypedMap.EMPTY);
   }
 
@@ -27,5 +29,6 @@ public interface Streamable<T> {
    * @param value  Object to write
    * @throws io.netty.handler.codec.EncoderException  If unable to encode a value to network
    */
-  void encode(FriendlyByteBuf buffer, T value);
+  @Override
+  void encode(RegistryFriendlyByteBuf buffer, T value);
 }

@@ -7,6 +7,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.JsonOps;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 import org.jetbrains.annotations.Contract;
@@ -74,6 +78,18 @@ public interface Loadable<T> extends JsonDeserializer<T>, JsonSerializer<T>, Str
   @Override
   default JsonElement serialize(T object, Type type, JsonSerializationContext context) {
     return serialize(object);
+  }
+
+
+  /* Codec */
+
+  default Codec<T> codec() {
+    return Codec.PASSTHROUGH.comapFlatMap(
+      dyn -> {
+        try { return DataResult.success(convert(dyn.convert(JsonOps.INSTANCE).getValue(), "codec")); }
+        catch (RuntimeException e) { return DataResult.error(e::getMessage); }
+      },
+      value -> new Dynamic<>(JsonOps.INSTANCE, serialize(value)));
   }
 
 
