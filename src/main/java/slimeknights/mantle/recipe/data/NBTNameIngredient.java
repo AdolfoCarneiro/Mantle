@@ -5,9 +5,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.neoforged.neoforge.common.crafting.AbstractIngredient;
-import net.neoforged.neoforge.common.crafting.IIngredientSerializer;
+import net.neoforged.neoforge.common.crafting.ICustomIngredient;
+import net.neoforged.neoforge.common.crafting.IngredientType;
 
 import javax.annotation.Nullable;
 import java.util.stream.Stream;
@@ -16,13 +15,12 @@ import java.util.stream.Stream;
  * Ingredient for a NBT sensitive item from another mod, should never be used outside datagen.
  * Note: item NBT is deprecated in 1.21+; prefer DataComponent-based matching.
  */
-public class NBTNameIngredient extends AbstractIngredient {
+public class NBTNameIngredient implements ICustomIngredient {
   private final ResourceLocation name;
   @Nullable
   private final CompoundTag nbt;
 
   protected NBTNameIngredient(ResourceLocation name, @Nullable CompoundTag nbt) {
-    super(Stream.empty());
     this.name = name;
     this.nbt = nbt;
   }
@@ -36,16 +34,25 @@ public class NBTNameIngredient extends AbstractIngredient {
   }
 
   @Override
-  public boolean test(@Nullable ItemStack stack) {
+  public boolean test(ItemStack stack) {
     throw new UnsupportedOperationException("Datagen only");
   }
 
   @Override
-  public IIngredientSerializer<? extends Ingredient> getSerializer() {
-    throw new UnsupportedOperationException("Datagen only");
+  public Stream<ItemStack> getItems() {
+    return Stream.empty();
   }
 
   @Override
+  public boolean isSimple() {
+    return false;
+  }
+
+  @Override
+  public IngredientType<?> getType() {
+    throw new UnsupportedOperationException("Datagen only");
+  }
+
   public JsonElement toJson() {
     JsonObject json = new JsonObject();
     json.addProperty("item", name.toString());
