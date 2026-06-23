@@ -3,7 +3,6 @@ package slimeknights.mantle.recipe.ingredient;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -25,7 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(staticName = "of")
 public class SizedIngredient implements Predicate<ItemStack> {
   /** Empty sized ingredient wrapper. Matches only the empty stack of size 0 */
-  public static final SizedIngredient EMPTY = of(Ingredient.EMPTY, 0);
+  public static final SizedIngredient EMPTY = of(Ingredient.of(), 0);
 
   public static final RecordLoadable<SizedIngredient> LOADABLE = RecordLoadable.create(
     IngredientLoadable.DISALLOW_EMPTY.tryDirectField("ingredient", SizedIngredient::getIngredient, "amount_needed"),
@@ -122,26 +121,6 @@ public class SizedIngredient implements Predicate<ItemStack> {
       lastIngredientMatch = new WeakReference<>(ingredientMatch);
     }
     return matchingStacks;
-  }
-
-  /** use {@link #LOADABLE} with {@link slimeknights.mantle.data.loadable.Loadable#encode(FriendlyByteBuf, Object)} */
-  @Deprecated(forRemoval = true)
-  public void write(FriendlyByteBuf buffer) {
-    LOADABLE.encode(buffer, this);
-  }
-
-  /** @deprecated use {@link #LOADABLE} with {@link slimeknights.mantle.data.loadable.Loadable#serialize(Object)} or {@link RecordLoadable#serialize(Object, JsonObject)} */
-  @Deprecated(forRemoval = true)
-  public JsonObject serialize() {
-    JsonObject json = new JsonObject();
-    LOADABLE.serialize(this, json);
-    return json;
-  }
-
-  /** @deprecated use {@link #LOADABLE} with {@link slimeknights.mantle.data.loadable.Loadable#decode(FriendlyByteBuf)}  */
-  @Deprecated(forRemoval = true)
-  public static SizedIngredient read(FriendlyByteBuf buffer) {
-    return LOADABLE.decode(buffer);
   }
 
   /** @deprecated use {@link #LOADABLE} with {@link RecordLoadable#deserialize(JsonObject)} */

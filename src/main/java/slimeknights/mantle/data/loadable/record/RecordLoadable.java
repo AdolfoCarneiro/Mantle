@@ -121,7 +121,7 @@ public interface RecordLoadable<T> extends Loadable<T> {
           com.google.gson.JsonObject json = new com.google.gson.JsonObject();
           input.entries().forEach(e ->
             ops.getStringValue(e.getFirst()).result().ifPresent(key ->
-              json.add(key, (com.google.gson.JsonElement) ops.convertTo(com.mojang.serialization.ops.JsonOps.INSTANCE, e.getSecond()))));
+              json.add(key, (com.google.gson.JsonElement) ops.convertTo(com.mojang.serialization.JsonOps.INSTANCE, e.getSecond()))));
           return com.mojang.serialization.DataResult.success(RecordLoadable.this.deserialize(json, context));
         } catch (RuntimeException e) { return com.mojang.serialization.DataResult.error(e::getMessage); }
       }
@@ -129,7 +129,7 @@ public interface RecordLoadable<T> extends Loadable<T> {
       public <O> com.mojang.serialization.RecordBuilder<O> encode(T value, com.mojang.serialization.DynamicOps<O> ops, com.mojang.serialization.RecordBuilder<O> prefix) {
         com.google.gson.JsonElement el = RecordLoadable.this.serialize(value);
         if (el instanceof com.google.gson.JsonObject json) {
-          json.entrySet().forEach(e -> prefix.add(e.getKey(), com.mojang.serialization.ops.JsonOps.INSTANCE.convertTo(ops, e.getValue())));
+          json.entrySet().forEach(e -> prefix.add(e.getKey(), com.mojang.serialization.JsonOps.INSTANCE.convertTo(ops, e.getValue())));
         }
         return prefix;
       }
