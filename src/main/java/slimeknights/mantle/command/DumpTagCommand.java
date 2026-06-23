@@ -1,4 +1,4 @@
-﻿package slimeknights.mantle.command;
+package slimeknights.mantle.command;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

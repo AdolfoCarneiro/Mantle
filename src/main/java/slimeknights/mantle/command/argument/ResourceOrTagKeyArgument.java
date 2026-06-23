@@ -1,4 +1,4 @@
-﻿package slimeknights.mantle.command.argument;
+package slimeknights.mantle.command.argument;
 
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.StringReader;

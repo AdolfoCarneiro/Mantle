@@ -1,4 +1,4 @@
-﻿package slimeknights.mantle.command;
+package slimeknights.mantle.command;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -15,8 +15,8 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.TierSortingRegistry;
 import slimeknights.mantle.Mantle;
 
 import java.io.BufferedWriter;
@@ -37,6 +37,7 @@ public class HarvestTiersCommand {
   // loot modifiers
   private static final Component SUCCESS_LOG = Component.translatable("command.mantle.harvest_tiers.success_log");
   private static final Component EMPTY = Component.translatable("command.mantle.tag.empty");
+  private static final List<Tier> SORTED_TIERS = List.of(Tiers.WOOD, Tiers.STONE, Tiers.IRON, Tiers.DIAMOND, Tiers.NETHERITE);
 
   /**
    * Registers this sub command with the root command
@@ -57,7 +58,7 @@ public class HarvestTiersCommand {
 
   /** Runs the command, dumping the tag */
   private static int list(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-    List<Tier> sortedTiers = TierSortingRegistry.getSortedTiers();
+    List<Tier> sortedTiers = SORTED_TIERS;
 
     // start building output message
     MutableComponent output = Component.translatable("command.mantle.harvest_tiers.success_list");
@@ -68,7 +69,7 @@ public class HarvestTiersCommand {
       for (Tier tier : sortedTiers) {
         output.append("\n* ");
         TagKey<Block> tag = tier.getTag();
-        ResourceLocation id = TierSortingRegistry.getName(tier);
+        ResourceLocation id = getTierName(tier);
         if (tag != null) {
           output.append(Component.translatable("command.mantle.harvest_tiers.tag", id, getTagComponent(tag)));
         } else {
@@ -82,12 +83,12 @@ public class HarvestTiersCommand {
 
   /** Runs the command, dumping the tag */
   private static int run(CommandContext<CommandSourceStack> context, boolean saveFile) throws CommandSyntaxException {
-    List<Tier> sortedTiers = TierSortingRegistry.getSortedTiers();
+    List<Tier> sortedTiers = SORTED_TIERS;
 
     // save the list as JSON
     JsonArray entries = new JsonArray();
     for (Tier location : sortedTiers) {
-      entries.add(Objects.requireNonNull(TierSortingRegistry.getName(location)).toString());
+      entries.add(Objects.requireNonNull(getTierName(location)).toString());
     }
     JsonObject json = new JsonObject();
     json.add("order", entries);
@@ -113,5 +114,13 @@ public class HarvestTiersCommand {
     }
     // return a number to finish
     return sortedTiers.size();
+  }
+
+  /** Gets the registry name used by vanilla tier ordering data. */
+  private static ResourceLocation getTierName(Tier tier) {
+    if (tier instanceof Tiers vanillaTier) {
+      return ResourceLocation.withDefaultNamespace(vanillaTier.name().toLowerCase(java.util.Locale.ROOT));
+    }
+    return ResourceLocation.fromNamespaceAndPath("unknown", tier.toString().toLowerCase(java.util.Locale.ROOT));
   }
 }
