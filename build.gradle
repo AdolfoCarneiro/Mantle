@@ -70,7 +70,7 @@ sourceSets {
 }
 
 dependencies {
-    // Phase 0: no JEI. compileOnly JEI returns in a later phase when plugin/ is ported.
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
 }
 
 // Expand mod metadata placeholders into neoforge.mods.toml and pack.mcmeta
@@ -96,6 +96,7 @@ neoForge.ideSyncTask generateModMetadata
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xmaxerrs', '5000']
 }
 
 publishing {
