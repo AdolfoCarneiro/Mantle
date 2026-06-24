@@ -1,12 +1,18 @@
 package slimeknights.mantle;
 
+import com.google.common.collect.ImmutableSet;
 import net.minecraft.Util;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import slimeknights.mantle.block.entity.MantleHangingSignBlockEntity;
+import slimeknights.mantle.block.entity.MantleSignBlockEntity;
 import slimeknights.mantle.network.MantlePayloadInit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,8 +36,19 @@ public class Mantle {
   /* Instance of this mod, used for grabbing prototype fields */
   public static Mantle instance;
 
+  // Sign block entity types — blocks added lazily by consuming mods via MantleSignBlockEntity.registerSignBlock()
+  private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
+      DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, modId);
+  @SuppressWarnings("unused")
+  private static final Object SIGN_TYPE = BLOCK_ENTITY_TYPES.register("sign", () ->
+      new BlockEntityType<>(MantleSignBlockEntity::new, ImmutableSet.copyOf(MantleSignBlockEntity.buildSignBlocks()), null));
+  @SuppressWarnings("unused")
+  private static final Object HANGING_SIGN_TYPE = BLOCK_ENTITY_TYPES.register("hanging_sign", () ->
+      new BlockEntityType<>(MantleHangingSignBlockEntity::new, ImmutableSet.copyOf(MantleHangingSignBlockEntity.buildSignBlocks()), null));
+
   public Mantle(IEventBus modEventBus, ModContainer modContainer) {
     instance = this;
+    BLOCK_ENTITY_TYPES.register(modEventBus);
     modEventBus.addListener(MantlePayloadInit::register);
     modEventBus.addListener(MantleCapabilities::register);
     logger.info("Mantle Phase 1 Task 7: capabilities layer loaded.");
