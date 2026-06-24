@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockElement;
 import net.minecraft.client.renderer.block.model.BlockElementFace;
 import net.minecraft.client.renderer.block.model.BlockModel;
+import net.minecraft.client.renderer.block.model.FaceBakery;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
@@ -55,7 +56,7 @@ public class SimpleBlockModel implements IUnbakedGeometry<SimpleBlockModel> {
   /** Model loader for vanilla block model, mainly intended for use in fallback registration */
   public static final IGeometryLoader<SimpleBlockModel> LOADER = SimpleBlockModel::deserialize;
   /** Location used for baking dynamic models, name does not matter so just using a constant */
-  static final ResourceLocation BAKE_LOCATION = Mantle.getResource("dynamic_model_baking");
+  public static final ResourceLocation BAKE_LOCATION = Mantle.getResource("dynamic_model_baking");
 
   /** Parent model location, used to fetch parts and for textures if the owner is not a block model */
   @Getter
@@ -194,24 +195,26 @@ public class SimpleBlockModel implements IUnbakedGeometry<SimpleBlockModel> {
    * @param quadTransformer  Additional forge transforms
    * @param location         Model location
    */
+  private static final FaceBakery FACE_BAKERY = new FaceBakery();
+
   public static void bakePart(Builder builder, IGeometryBakingContext owner, BlockElement part, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, IQuadTransformer quadTransformer, ResourceLocation location) {
     for(Direction direction : part.faces.keySet()) {
       BlockElementFace face = part.faces.get(direction);
       // ensure the name is not prefixed (it always is)
-      String texture = face.texture;
+      String texture = face.texture();
       if (texture.charAt(0) == '#') {
         texture = texture.substring(1);
       }
       // bake the face
       TextureAtlasSprite sprite = spriteGetter.apply(owner.getMaterial(texture));
-      BakedQuad bakedQuad = BlockModel.bakeFace(part, face, sprite, direction, transform, location);
+      BakedQuad bakedQuad = FACE_BAKERY.bakeQuad(part.from, part.to, face, sprite, direction, transform, part.rotation, part.shade);
       quadTransformer.processInPlace(bakedQuad);
       // apply cull face
       //noinspection ConstantConditions  Its nullable, just annotated wrongly
-      if (face.cullForDirection == null) {
+      if (face.cullForDirection() == null) {
         builder.addUnculledFace(bakedQuad);
       } else {
-        builder.addCulledFace(Direction.rotate(transform.getRotation().getMatrix(), face.cullForDirection), bakedQuad);
+        builder.addCulledFace(Direction.rotate(transform.getRotation().getMatrix(), face.cullForDirection()), bakedQuad);
       }
     }
   }
@@ -255,8 +258,8 @@ public class SimpleBlockModel implements IUnbakedGeometry<SimpleBlockModel> {
   }
 
   @Override
-  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides, ResourceLocation location) {
-    return bakeModel(owner, this.getElements(), spriteGetter, transform, overrides, location);
+  public BakedModel bake(IGeometryBakingContext owner, ModelBaker baker, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides) {
+    return bakeModel(owner, this.getElements(), spriteGetter, transform, overrides, BAKE_LOCATION);
   }
 
   /**
