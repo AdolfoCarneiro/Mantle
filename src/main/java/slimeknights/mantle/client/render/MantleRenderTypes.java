@@ -44,7 +44,6 @@ public class MantleRenderTypes extends RenderType {
     .add("UV1", VertexFormatElement.UV1)
     .add("UV2", VertexFormatElement.UV2)
     .add("Normal", VertexFormatElement.NORMAL)
-    .add("Padding", VertexFormatElement.PADDING)
     .build();
 
   public static final RenderType TRANSLUCENT_FULLBRIGHT = create(

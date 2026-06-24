@@ -134,7 +134,7 @@ public abstract class ModuleScreen<P extends MultiModuleScreen<?>, C extends Abs
    *
    * @return True to prevent the main container handling the mouseclick
    */
-  public boolean handleMouseScrolled(double mouseX, double mouseY, double delta) {
+  public boolean handleMouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
     return false;
   }
 }

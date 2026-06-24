@@ -6,7 +6,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.renderer.Sheets;
@@ -77,10 +76,10 @@ public class ClientEvents {
   @SubscribeEvent
   static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
     if (MantleRegistrations.SIGN != null) {
-      event.registerBlockEntityRenderer(MantleRegistrations.SIGN, SignRenderer::new);
+      event.registerBlockEntityRenderer(MantleRegistrations.SIGN.get(), SignRenderer::new);
     }
     if (MantleRegistrations.HANGING_SIGN != null) {
-      event.registerBlockEntityRenderer(MantleRegistrations.HANGING_SIGN, HangingSignRenderer::new);
+      event.registerBlockEntityRenderer(MantleRegistrations.HANGING_SIGN.get(), HangingSignRenderer::new);
     }
   }
 
@@ -109,14 +108,14 @@ public class ClientEvents {
   @SubscribeEvent
   static void registerModelLoaders(RegisterGeometryLoaders event) {
     // standard models - useful in resource packs for any model
-    event.register("connected", ConnectedModel.LOADER);
-    event.register("item_layer", MantleItemLayerModel.LOADER);
-    event.register("colored_block", ColoredBlockModel.LOADER);
-    event.register("fallback", FallbackModelLoader.INSTANCE);
+    event.register(Mantle.getResource("connected"), ConnectedModel.LOADER);
+    event.register(Mantle.getResource("item_layer"), MantleItemLayerModel.LOADER);
+    event.register(Mantle.getResource("colored_block"), ColoredBlockModel.LOADER);
+    event.register(Mantle.getResource("fallback"), FallbackModelLoader.INSTANCE);
 
     // NBT dynamic models - require specific data defined in the block/item to use
-    event.register("nbt_key", NBTKeyModel.LOADER);
-    event.register("retextured", RetexturedModel.LOADER);
+    event.register(Mantle.getResource("nbt_key"), NBTKeyModel.LOADER);
+    event.register(Mantle.getResource("retextured"), RetexturedModel.LOADER);
   }
 
   @SubscribeEvent
@@ -159,7 +158,7 @@ public class ClientEvents {
     switch (indicator) {
       case CROSSHAIR:
         if (!isHotbar && minecraft.options.getCameraType().isFirstPerson()) {
-          if (!settings.renderDebug || settings.hideGui || minecraft.player.isReducedDebugInfo() || settings.reducedDebugInfo().get()) {
+          if (!minecraft.gui.getDebugOverlay().showDebugScreen() || settings.hideGui || minecraft.player.isReducedDebugInfo() || settings.reducedDebugInfo().get()) {
             // mostly cloned from vanilla attack indicator
             RenderSystem.enableBlend();
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
@@ -168,8 +167,8 @@ public class ClientEvents {
             int y = (scaledHeight / 2) - 14 + (2 * (scaledHeight % 2));
             int x = minecraft.getWindow().getGuiScaledWidth() / 2 - 8;
             int width = (int)(cooldown * 17.0F);
-            graphics.blit(Gui.GUI_ICONS_LOCATION, x, y, 36, 94, 16, 4);
-            graphics.blit(Gui.GUI_ICONS_LOCATION, x, y, 52, 94, width, 4);
+            graphics.blit(ResourceLocation.withDefaultNamespace("textures/gui/icons.png"), x, y, 36, 94, 16, 4);
+            graphics.blit(ResourceLocation.withDefaultNamespace("textures/gui/icons.png"), x, y, 52, 94, width, 4);
             RenderSystem.defaultBlendFunc();
           }
         }
@@ -188,8 +187,8 @@ public class ClientEvents {
 //          RenderSystem.setShaderTexture(0, GuiComponent.GUI_ICONS_LOCATION);
           int l1 = (int)(cooldown * 19.0F);
           RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-          graphics.blit(Gui.GUI_ICONS_LOCATION, x, y, 0, 94, 18, 18);
-          graphics.blit(Gui.GUI_ICONS_LOCATION, x, y + 18 - l1, 18, 112 - l1, 18, l1);
+          graphics.blit(ResourceLocation.withDefaultNamespace("textures/gui/icons.png"), x, y, 0, 94, 18, 18);
+          graphics.blit(ResourceLocation.withDefaultNamespace("textures/gui/icons.png"), x, y + 18 - l1, 18, 112 - l1, 18, l1);
         }
         break;
     }
