@@ -3,11 +3,13 @@ package slimeknights.mantle.data.loadable.common;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.EncoderException;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import slimeknights.mantle.data.loadable.ErrorFactory;
 import slimeknights.mantle.data.loadable.Loadable;
 import slimeknights.mantle.data.loadable.Loadables;
@@ -42,7 +44,7 @@ public class ItemStackLoadable {
   /** Field for item stack count that allows empty */
   private static final LoadableField<Integer,ItemStack> COUNT = IntLoadable.FROM_ZERO.defaultField("count", 1, true, ItemStack::getCount);
   /** Field for item stack count that allows empty */
-  private static final LoadableField<CompoundTag,ItemStack> NBT = NBTLoadable.ALLOW_STRING.nullableField("nbt", ItemStack::getTag);
+  private static final LoadableField<CompoundTag,ItemStack> NBT = NBTLoadable.ALLOW_STRING.nullableField("nbt", stack -> stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : null);
 
 
   /* Optional */
@@ -76,7 +78,7 @@ public class ItemStackLoadable {
     }
     ItemStack stack = new ItemStack(item, count);
     if (nbt != null) {
-      stack.setTag(nbt);
+      stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
     }
     return stack;
   }
@@ -132,7 +134,7 @@ public class ItemStackLoadable {
 
     @Override
     public JsonElement serialize(ItemStack stack) {
-      if ((this == FIXED_COUNT || stack.getCount() == 1) && !stack.hasTag()) {
+      if ((this == FIXED_COUNT || stack.getCount() == 1) && !stack.has(DataComponents.CUSTOM_DATA)) {
         return OPTIONAL_ITEM.serialize(stack);
       }
       return RecordLoadable.super.serialize(stack);
@@ -155,7 +157,9 @@ public class ItemStackLoadable {
         return ItemStack.EMPTY;
       }
       ItemStack stack = new ItemStack(item, count);
-      stack.readShareTag(nbt);
+      if (nbt != null && !nbt.isEmpty()) {
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
+      }
       return stack;
     }
 
@@ -165,7 +169,7 @@ public class ItemStackLoadable {
       if (this == READ_COUNT) {
         COUNT.encode(buffer, stack);
       }
-      buffer.writeNbt(stack.getShareTag());
+      buffer.writeNbt(stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : null);
     }
   }
 }

@@ -1,6 +1,7 @@
 package slimeknights.mantle.data.loadable.common;
 
 import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.crafting.Ingredient;
 import slimeknights.mantle.data.loadable.Loadable;
@@ -13,7 +14,7 @@ public enum IngredientLoadable implements Loadable<Ingredient> {
 
   @Override
   public Ingredient convert(JsonElement element, String key, TypedMap context) {
-    return Ingredient.fromJson(element, this == ALLOW_EMPTY);
+    return (this == ALLOW_EMPTY ? Ingredient.CODEC : Ingredient.CODEC_NONEMPTY).parse(JsonOps.INSTANCE, element).getOrThrow();
   }
 
   @Override
@@ -21,16 +22,16 @@ public enum IngredientLoadable implements Loadable<Ingredient> {
     if (object.isEmpty() && this == DISALLOW_EMPTY) {
       throw new IllegalArgumentException("Ingredient cannot be empty");
     }
-    return object.toJson();
+    return Ingredient.CODEC.encodeStart(JsonOps.INSTANCE, object).getOrThrow();
   }
 
   @Override
   public Ingredient decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
-    return Ingredient.fromNetwork(buffer);
+    return Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
   }
 
   @Override
   public void encode(RegistryFriendlyByteBuf buffer, Ingredient object) {
-    object.toNetwork(buffer);
+    Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, object);
   }
 }

@@ -52,7 +52,7 @@ public enum NBTLoadable implements RecordLoadable<CompoundTag> {
 
   @Override
   public void serialize(CompoundTag object, JsonObject json) {
-    json.entrySet().addAll(serialize(object).entrySet());
+    json.entrySet().addAll(serialize(object).getAsJsonObject().entrySet());
   }
 
   @Override
@@ -79,7 +79,7 @@ public enum NBTLoadable implements RecordLoadable<CompoundTag> {
   private record NullableNBTField<P>(NBTLoadable loadable, String key, Function<P,CompoundTag> getter) implements LoadableField<CompoundTag,P> {
     @Nullable
     @Override
-    public CompoundTag get(JsonObject json, TypedMap context) {
+    public CompoundTag get(JsonObject json, String key, TypedMap context) {
       JsonElement element = json.get(key);
       if (element != null && !element.isJsonNull()) {
         return loadable.convert(element, key, context);
