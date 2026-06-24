@@ -64,6 +64,11 @@ net.minecraftforge.common.crafting.CraftingHelper    → net.neoforged.neoforge.
 net.minecraftforge.common.data.ExistingFileHelper    → net.neoforged.neoforge.common.data.ExistingFileHelper
 net.minecraftforge.common.SoundActions               → net.neoforged.neoforge.common.SoundActions
 net.minecraftforge.common.ForgeConfigSpec            → net.neoforged.neoforge.common.ModConfigSpec
+net.minecraftforge.common.ForgeMod                   → net.neoforged.neoforge.common.NeoForgeMod
+net.minecraftforge.common.ToolAction / ToolActions    → net.neoforged.neoforge.common.ItemAbility / ItemAbilities
+net.minecraftforge.common.capabilities.ForgeCapabilities → net.neoforged.neoforge.capabilities.Capabilities (e.g. Capabilities.FluidHandler.BLOCK/ITEM, Capabilities.ItemHandler.BLOCK/ITEM)
+net.minecraftforge.network.NetworkHooks.openScreen(player, provider, pos) → player.openMenu(provider)  (vanilla; NetworkHooks removed)
+net.minecraftforge.client.model.data.ModelData       → net.neoforged.neoforge.client.model.data.ModelData
 @Mod.EventBusSubscriber                              → @EventBusSubscriber (net.neoforged.fml.common.EventBusSubscriber)
 Mod.EventBusSubscriber.Bus.MOD                       → EventBusSubscriber.Bus.MOD
 FriendlyByteBuf (in Streamable decode/encode)        → RegistryFriendlyByteBuf
@@ -82,6 +87,17 @@ All `decode(FriendlyByteBuf, ...)` and `encode(FriendlyByteBuf, ...)` in Streama
 - `Recipe.getId()` removed — id lives in registry holder
 - `new ResourceLocation(a,b)` → `ResourceLocation.fromNamespaceAndPath(a,b)` (already applied in Task 1)
 - `new ResourceLocation(s)` → `ResourceLocation.parse(s)` (already applied in Task 1)
+- `BlockEntity.getCapability(Capability, Direction)` / `invalidateCaps()` REMOVED — capabilities are no longer instance methods on
+  BlockEntity/Entity/ItemStack in NeoForge. They're queried via `level.getCapability(BlockCapability<T,C> cap, BlockPos pos, C context)`
+  (nullable return, no LazyOptional) and registered per concrete type via `RegisterCapabilitiesEvent.registerBlockEntity(cap, TYPE, (be,ctx)->handler)`
+  in the type's owning mod — NOT inside a shared abstract base class. Mantle's `InventoryBlockEntity`/`MantleBlockEntity` just expose a
+  plain getter (e.g. `getItemHandler()`); subclass registration call sites (in Mantle or consuming mods) wire that into
+  `Capabilities.ItemHandler.BLOCK` registration.
+- `LevelReader` has no `getCapability` (only `Level` does) — methods like `Block.canSurvive(state, LevelReader, pos)` that need a
+  capability check must `instanceof Level` guard first.
+- `TierSortingRegistry` (net.neoforged.neoforge.common) — not found in NeoForge 1.21.1; for vanilla-only tier ordering, hardcode the
+  vanilla `List.of(Tiers.WOOD, Tiers.STONE, Tiers.IRON, Tiers.DIAMOND, Tiers.NETHERITE)` order instead.
+- `net.minecraft.commands.CommandRuntimeException` removed → use Brigadier `SimpleCommandExceptionType`.
 
 ## Commands
 Run from `C:/Users/Adolfo/source/repos/Mantle-neo`:
