@@ -97,6 +97,47 @@ All `decode(FriendlyByteBuf, ...)` and `encode(FriendlyByteBuf, ...)` in Streama
   capability check must `instanceof Level` guard first.
 - `TierSortingRegistry` (net.neoforged.neoforge.common) — not found in NeoForge 1.21.1; for vanilla-only tier ordering, hardcode the
   vanilla `List.of(Tiers.WOOD, Tiers.STONE, Tiers.IRON, Tiers.DIAMOND, Tiers.NETHERITE)` order instead.
+- `ItemStack` legacy NBT API fully removed: `getTag()`/`getOrCreateTag()`/`hasTag()`/`setTag()`/`ItemStack.of(CompoundTag)`/
+  `stack.save(CompoundTag)` are ALL gone. Use `DataComponents.CUSTOM_DATA` + `CustomData.of(tag)` for arbitrary mod NBT
+  (`stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag()` to read,
+  `stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag))` to write, `stack.remove(DataComponents.CUSTOM_DATA)` to clear).
+  For serializing whole stacks: `ItemStack.parseOptional(HolderLookup.Provider, CompoundTag)` replaces `ItemStack.of(tag)`;
+  `stack.save(HolderLookup.Provider, tag)` (cast result to CompoundTag) replaces `stack.save(tag)`.
+- `BlockEntity.load(CompoundTag)` / `saveAdditional(CompoundTag)` / `getUpdateTag()` ALL gained a `HolderLookup.Provider`
+  param and `load` was renamed `loadAdditional` (protected): `loadAdditional(CompoundTag, HolderLookup.Provider)`,
+  `saveAdditional(CompoundTag, HolderLookup.Provider)`, `getUpdateTag(HolderLookup.Provider)`. Thread the Provider through
+  any custom helper methods (e.g. Mantle's `saveSynced`) that get called from inside these overrides.
+- `PressurePlateBlock`/`ButtonBlock` constructors changed: `PressurePlateBlock(BlockSetType, Properties)` — the old
+  `Sensitivity` enum is GONE, plain `PressurePlateBlock` is now always "every entity" sensitivity.
+  `ButtonBlock(BlockSetType, int ticksToStayPressed, Properties)` — no more trailing boolean "arrowsCanPress" param.
+- `EventBusSubscriber.Bus.FORGE` renamed `Bus.GAME` (`Bus.MOD` unchanged).
+- `ForgeEventFactory` class removed → `net.neoforged.neoforge.event.EventHooks` (e.g. `canCreateFluidSource(level,pos,state)`,
+  3 args now, the old boolean "canConvert" 4th arg is computed internally).
+- `IForgeRegistry<T>` interface removed entirely. NeoForge registries (`NeoForgeRegistries.FLUID_TYPES` etc.) are now plain
+  vanilla `Registry<T>` instances directly (not wrapped in a `Supplier`/`.get()`). Use vanilla `Registry` methods:
+  `entrySet()` not `getEntries()`, `get(ResourceLocation)` not `getValue(id)`.
+- `PotionUtils` class removed → potion data lives in the `DataComponents.POTION_CONTENTS` component (`PotionContents`).
+  `PotionContents.is(Holder<Potion>)` replaces `PotionUtils.getPotion(stack) == somePotion`.
+  `PotionContents.createItemStack(Item, Holder<Potion>)` replaces `PotionUtils.setPotion(new ItemStack(item), potion)`.
+- `FluidStack` constructors now require `Holder<Fluid>` (not raw `Fluid`) when passing a `DataComponentPatch`:
+  `new FluidStack(Holder<Fluid>, int, DataComponentPatch)`. Get a holder from a raw `Fluid` via
+  `BuiltInRegistries.FLUID.wrapAsHolder(fluid)`. Build a patch via `DataComponentPatch.builder().set(type, value).build()`.
+- **Trust no cached jar's API shape without checking it's the version actually resolved.** Multiple versions of the same
+  artifact (e.g. fancymodloader 4.0.42 vs 11.0.4/11.0.5) can sit in `~/.gradle/caches/modules-2` simultaneously from other
+  projects; only one is on THIS project's classpath. Run
+  `gradlew dependencies --configuration compileClasspath --console=plain` to find the real resolved version before
+  trusting a decompiled/extracted class from the wrong jar (e.g. `EventBusSubscriber.Bus` has `FORGE`/no-`bus()`-field in
+  one fancymodloader version and `GAME`/`MOD` in another — checked the wrong one first and got a false answer).
+
+## CRITICAL: don't trust low error counts — raise -Xmaxerrs
+javac's default error cap is 100, and it was **silently truncating** the real error count in every prior session's
+compile checks. `build.gradle`'s `tasks.withType(JavaCompile)` now sets `options.compilerArgs += ['-Xmaxerrs', '5000']`
+— always rely on the count AFTER that change, never assume an old "N errors, all known/expected" note from before this
+was added is still accurate. Discovered at the end of Task 9e: the true error count was 471, not the 22 visible before.
+This happens because "package does not exist" errors from not-yet-ported layers structurally short-circuit deeper
+type-checking of files that import them — once the missing package exists, MANY MORE independent, previously-invisible
+errors in the same file surface for the first time. Treat every prior "Task N: complete, 0 new errors" note in the
+ledger as **provisional** until re-verified with the raised cap.
 - `net.minecraft.commands.CommandRuntimeException` removed → use Brigadier `SimpleCommandExceptionType`.
 - `net.minecraft.world.level.storage.loot.Serializer` REMOVED entirely. `LootItemConditionType` /
   `LootItemFunctionType<T>` / `LootPoolEntryType` are now records wrapping `MapCodec<? extends X>` — no more
