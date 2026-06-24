@@ -10,9 +10,11 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.profiling.InactiveProfiler;
+import net.minecraft.world.TickRateManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.item.alchemy.PotionBrewing;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
@@ -23,9 +25,9 @@ import net.minecraft.world.level.chunk.ChunkSource;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.entity.LevelEntityGetter;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.gameevent.GameEvent.Context;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Scoreboard;
@@ -45,10 +47,12 @@ import java.util.function.Predicate;
  */
 public class TemplateLevel extends Level {
 
-  private final Map<String, MapItemSavedData> maps = new HashMap<>();
+  private final Map<MapId, MapItemSavedData> maps = new HashMap<>();
   private final Scoreboard scoreboard = new Scoreboard();
-  private final RecipeManager recipeManager = new RecipeManager();
+  private final RecipeManager recipeManager = new RecipeManager(registryAccess());
   private final TemplateChunkSource chunkSource;
+  private float dayTimePerTick = 0;
+  private float dayTimeFraction = 0;
 
   public TemplateLevel(List<StructureBlockInfo> blocks, Predicate<BlockPos> shouldShow) {
     super(
@@ -82,18 +86,18 @@ public class TemplateLevel extends Level {
 
   @Nullable
   @Override
-  public MapItemSavedData getMapData(@Nonnull String mapName) {
-    return this.maps.get(mapName);
+  public MapItemSavedData getMapData(@Nonnull MapId mapId) {
+    return this.maps.get(mapId);
   }
 
   @Override
-  public void setMapData(String mapId, MapItemSavedData mapDataIn) {
+  public void setMapData(MapId mapId, MapItemSavedData mapDataIn) {
     this.maps.put(mapId, mapDataIn);
   }
 
   @Override
-  public int getFreeMapId() {
-    return this.maps.size();
+  public MapId getFreeMapId() {
+    return new MapId(this.maps.size());
   }
 
   @Override
@@ -138,7 +142,37 @@ public class TemplateLevel extends Level {
   public void levelEvent(@Nullable Player player, int type, @Nonnull BlockPos pos, int data) {}
 
   @Override
-  public void gameEvent(GameEvent pEvent, Vec3 pPosition, Context pContext) {}
+  public void gameEvent(Holder<GameEvent> pEvent, Vec3 pPosition, GameEvent.Context pContext) {}
+
+  @Override
+  public TickRateManager tickRateManager() {
+    return new TickRateManager();
+  }
+
+  @Override
+  public PotionBrewing potionBrewing() {
+    return PotionBrewing.EMPTY;
+  }
+
+  @Override
+  public float getDayTimeFraction() {
+    return this.dayTimeFraction;
+  }
+
+  @Override
+  public void setDayTimeFraction(float dayTimeFraction) {
+    this.dayTimeFraction = dayTimeFraction;
+  }
+
+  @Override
+  public float getDayTimePerTick() {
+    return this.dayTimePerTick;
+  }
+
+  @Override
+  public void setDayTimePerTick(float dayTimePerTick) {
+    this.dayTimePerTick = dayTimePerTick;
+  }
 
   @Override
   public FeatureFlagSet enabledFeatures() {
