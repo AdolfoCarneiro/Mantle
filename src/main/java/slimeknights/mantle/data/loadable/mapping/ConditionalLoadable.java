@@ -1,8 +1,10 @@
 package slimeknights.mantle.data.loadable.mapping;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.ICondition.IContext;
 import slimeknights.mantle.data.loadable.field.ContextKey;
@@ -12,6 +14,7 @@ import slimeknights.mantle.data.registry.GenericLoaderRegistry.IHaveLoader;
 import slimeknights.mantle.util.typed.TypedMap;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Loadable allowing a load time condition check to change which object is used.
@@ -26,7 +29,13 @@ public record ConditionalLoadable<T extends IHaveLoader>(GenericLoaderRegistry<T
     // if missing, assume tags are invalid
     IContext conditionContext = context.getOrDefault(ContextKey.CONDITION_CONTEXT, IContext.TAGS_INVALID);
     // if the condition matches, use the true value
-    if (CraftingHelper.processConditions(json, "conditions", conditionContext)) {
+    JsonElement conditionsElement = json.get("conditions");
+    boolean conditionsMatch = true;
+    if (conditionsElement != null) {
+      conditionsMatch = ICondition.LIST_CODEC.parse(JsonOps.INSTANCE, conditionsElement).getOrThrow(JsonParseException::new)
+        .stream().allMatch(condition -> condition.test(conditionContext));
+    }
+    if (conditionsMatch) {
       return registry.getIfPresent(json, "if_true");
     }
     // loader can define a default instance for false if they have one. Otherwise false is required.
@@ -40,7 +49,7 @@ public record ConditionalLoadable<T extends IHaveLoader>(GenericLoaderRegistry<T
   @Override
   public void serialize(T object, JsonObject json) {
     ConditionalObject<T> conditional = (ConditionalObject<T>) object;
-    json.add("conditions", CraftingHelper.serialize(conditional.conditions()));
+    json.add("conditions", ICondition.LIST_CODEC.encodeStart(JsonOps.INSTANCE, List.of(conditional.conditions())).getOrThrow());
     json.add("if_true", registry.serialize(conditional.ifTrue()));
     T ifFalse = conditional.ifFalse();
     if (ifFalse != defaultIfFalse) {
