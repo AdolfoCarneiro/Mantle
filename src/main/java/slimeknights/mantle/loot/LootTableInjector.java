@@ -2,13 +2,15 @@ package slimeknights.mantle.loot;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
+import net.neoforged.neoforge.common.conditions.ConditionalOps;
+import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.ICondition.IContext;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.LootTableLoadEvent;
@@ -22,6 +24,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -58,7 +61,7 @@ public enum LootTableInjector implements IEarlyReloadListener {
         JsonObject json = GsonHelper.fromJson(JsonHelper.DEFAULT_GSON, reader, JsonObject.class);
         if (json != null) {
           // skip if empty for easy removals
-          if (!json.keySet().isEmpty() && CraftingHelper.processConditions(json, "conditions", context)) {
+          if (!json.keySet().isEmpty() && conditionsMatch(json, context)) {
             // the builder allows us to merge from multiple sources, for efficiency
             // ensures a given table name and pool name both show just once
             LootTableInjection injection = LootTableInjection.LOADABLE.deserialize(json);
@@ -80,6 +83,20 @@ public enum LootTableInjector implements IEarlyReloadListener {
                          .collect(Collectors.toUnmodifiableMap(LootTableInjection::name, Function.identity()));
     // log timer
     Mantle.logger.info("Loaded {} loot table injectors injecting into {} tables in {} ms", loaded, injections.size(), (System.nanoTime() - time) / 1000000f);
+  }
+
+  /** Checks if the conditions block (if present) on the given JSON object passes */
+  private static boolean conditionsMatch(JsonObject json, IContext context) {
+    if (!json.has(ConditionalOps.DEFAULT_CONDITIONS_KEY)) {
+      return true;
+    }
+    List<ICondition> conditions = ICondition.LIST_CODEC.parse(JsonOps.INSTANCE, json.get(ConditionalOps.DEFAULT_CONDITIONS_KEY)).getOrThrow(JsonParseException::new);
+    for (ICondition condition : conditions) {
+      if (!condition.test(context)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** Called on loot table load to handle the actual injection */

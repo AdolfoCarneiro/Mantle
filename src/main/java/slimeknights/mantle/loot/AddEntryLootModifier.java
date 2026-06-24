@@ -43,7 +43,7 @@ public class AddEntryLootModifier extends LootModifier {
     this.modifierConditions = modifierConditions;
     this.entry = entry;
 		this.functions = functions;
-		this.combinedFunctions = LootItemFunctions.compose(functions);
+		this.combinedFunctions = LootItemFunctions.compose(List.of(functions));
 	}
 
   /** Creates a builder for this loot modifier */

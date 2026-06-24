@@ -20,10 +20,9 @@ import java.util.List;
  * Loot function to set the fluid on a dropped item
  */
 public class SetFluidLootFunction extends LootItemConditionalFunction {
-  public static final MapCodec<SetFluidLootFunction> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
-    FluidStackLoadable.REQUIRED_STACK_NBT.codec().fieldOf("fluid").forGetter(f -> f.fluid))
-    .and(commonFields(inst))
-    .apply(inst, (fluid, conditions) -> new SetFluidLootFunction(conditions, fluid)));
+  public static final MapCodec<SetFluidLootFunction> CODEC = RecordCodecBuilder.mapCodec(inst -> commonFields(inst)
+    .and(FluidStackLoadable.REQUIRED_STACK_NBT.codec().fieldOf("fluid").forGetter(f -> f.fluid))
+    .apply(inst, (conditions, fluid) -> new SetFluidLootFunction(conditions, fluid)));
 
   /** Fluid to add to the item */
   private final FluidStack fluid;
