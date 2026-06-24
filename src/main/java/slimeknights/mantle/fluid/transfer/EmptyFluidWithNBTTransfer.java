@@ -3,6 +3,7 @@ package slimeknights.mantle.fluid.transfer;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -26,8 +27,8 @@ public class EmptyFluidWithNBTTransfer extends EmptyFluidContainerTransfer {
 
   @Override
   protected FluidStack getFluid(ItemStack stack) {
-    // TODO: merge NBT?
-    return new FluidStack(fluid.get().getFluid(), fluid.getAmount(), stack.getTag());
+    // TODO: merge components?
+    return new FluidStack(BuiltInRegistries.FLUID.wrapAsHolder(fluid.get().getFluid()), fluid.getAmount(), stack.getComponentsPatch());
   }
 
   @Override

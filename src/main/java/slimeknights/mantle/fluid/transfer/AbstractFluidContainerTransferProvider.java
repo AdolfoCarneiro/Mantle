@@ -2,6 +2,7 @@ package slimeknights.mantle.fluid.transfer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.Target;
@@ -10,7 +11,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import slimeknights.mantle.data.GenericDataProvider;
 import slimeknights.mantle.recipe.helper.FluidOutput;
@@ -102,7 +102,7 @@ public abstract class AbstractFluidContainerTransferProvider extends GenericData
       if (conditions.length != 0) {
         JsonArray array = new JsonArray();
         for (ICondition condition : conditions) {
-          array.add(CraftingHelper.serialize(condition));
+          array.add(ICondition.CODEC.encodeStart(JsonOps.INSTANCE, condition).getOrThrow());
         }
         element.getAsJsonObject().add("conditions", array);
       }

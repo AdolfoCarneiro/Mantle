@@ -21,8 +21,8 @@ public class FillFluidWithNBTTransfer extends FillFluidContainerTransfer {
   @Override
   protected ItemStack getFilled(FluidStack drained) {
     ItemStack filled = super.getFilled(drained);
-    if (drained.hasTag()) {
-      filled.setTag(drained.getTag().copy());
+    if (!drained.getComponentsPatch().isEmpty()) {
+      filled.applyComponents(drained.getComponentsPatch());
     }
     return filled;
   }

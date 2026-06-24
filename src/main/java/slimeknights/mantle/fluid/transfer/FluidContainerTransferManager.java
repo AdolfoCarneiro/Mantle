@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.JsonOps;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.resources.ResourceLocation;
@@ -18,7 +19,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.conditions.ICondition;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.bus.api.EventPriority;
@@ -88,10 +88,24 @@ public class FluidContainerTransferManager extends SimpleJsonResourceReloadListe
     });
   }
 
+  /** Checks if the "conditions" array (if present) on the given JSON object passes */
+  private boolean conditionsMatch(JsonObject json) {
+    if (!json.has("conditions")) {
+      return true;
+    }
+    List<ICondition> conditions = ICondition.LIST_CODEC.parse(JsonOps.INSTANCE, GsonHelper.getAsJsonArray(json, "conditions")).getOrThrow(JsonSyntaxException::new);
+    for (ICondition condition : conditions) {
+      if (!condition.test(context)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @Nullable
   private IFluidContainerTransfer loadFluidTransfer(ResourceLocation key, JsonObject json) {
     try {
-      if (!json.has("conditions") || CraftingHelper.processConditions(GsonHelper.getAsJsonArray(json, "conditions"), context)) {
+      if (conditionsMatch(json)) {
         return GSON.fromJson(json, IFluidContainerTransfer.class);
       }
     } catch (JsonSyntaxException e) {

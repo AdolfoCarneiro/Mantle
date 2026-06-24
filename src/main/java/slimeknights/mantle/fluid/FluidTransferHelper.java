@@ -67,13 +67,13 @@ public class FluidTransferHelper {
     if (!fluid.isEmpty()) {
       int simulatedFill = output.fill(fluid.copy(), FluidAction.SIMULATE);
       if (simulatedFill > 0) {
-        FluidStack drainedFluid = input.drain(new FluidStack(fluid, simulatedFill), FluidAction.EXECUTE);
+        FluidStack drainedFluid = input.drain(fluid.copyWithAmount(simulatedFill), FluidAction.EXECUTE);
         if (!drainedFluid.isEmpty()) {
           int actualFill = output.fill(drainedFluid.copy(), FluidAction.EXECUTE);
           if (actualFill < drainedFluid.getAmount()) {
             int toReturn = drainedFluid.getAmount() - actualFill;
             drainedFluid.setAmount(actualFill);
-            int returned = input.fill(new FluidStack(drainedFluid, toReturn), FluidAction.EXECUTE);
+            int returned = input.fill(drainedFluid.copyWithAmount(toReturn), FluidAction.EXECUTE);
             if (returned < toReturn) {
               Mantle.logger.error("Lost {} fluid during transfer", toReturn - returned);
             }
@@ -105,10 +105,10 @@ public class FluidTransferHelper {
   public static FluidInteractionResult interactWithFilledBucket(Level world, BlockPos pos, IFluidHandler handler, Player player, InteractionHand hand, Direction offset) {
     ItemStack held = player.getItemInHand(hand);
     if (held.getItem() instanceof BucketItem bucket) {
-      Fluid fluid = bucket.getFluid();
+      Fluid fluid = bucket.content;
       if (fluid != Fluids.EMPTY) {
         if (!world.isClientSide) {
-          FluidStack fluidStack = new FluidStack(bucket.getFluid(), FluidType.BUCKET_VOLUME);
+          FluidStack fluidStack = new FluidStack(bucket.content, FluidType.BUCKET_VOLUME);
           if (handler.fill(fluidStack, FluidAction.SIMULATE) == FluidType.BUCKET_VOLUME) {
             SoundEvent sound = getEmptySound(fluidStack);
             handler.fill(fluidStack, FluidAction.EXECUTE);
