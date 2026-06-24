@@ -98,6 +98,23 @@ All `decode(FriendlyByteBuf, ...)` and `encode(FriendlyByteBuf, ...)` in Streama
 - `TierSortingRegistry` (net.neoforged.neoforge.common) — not found in NeoForge 1.21.1; for vanilla-only tier ordering, hardcode the
   vanilla `List.of(Tiers.WOOD, Tiers.STONE, Tiers.IRON, Tiers.DIAMOND, Tiers.NETHERITE)` order instead.
 - `net.minecraft.commands.CommandRuntimeException` removed → use Brigadier `SimpleCommandExceptionType`.
+- `net.minecraft.world.level.storage.loot.Serializer` REMOVED entirely. `LootItemConditionType` /
+  `LootItemFunctionType<T>` / `LootPoolEntryType` are now records wrapping `MapCodec<? extends X>` — no more
+  Serializer inner classes with Gson `serialize()`/`deserialize()`. `LootPoolSingletonContainer` /
+  `LootItemConditionalFunction` constructors take `List<...>` not arrays; use their protected
+  `singletonFields(inst)` / `commonFields(inst)` helpers inside `RecordCodecBuilder.mapCodec(...)`.
+- `StatePropertiesPredicate.ANY` REMOVED → use `new StatePropertiesPredicate(List.of())` (same semantics).
+- `TagKey.codec(ResourceKey<? extends Registry<T>>)` → `Codec<TagKey<T>>`, use for tag fields in record codecs.
+- `IGlobalLootModifier.codec()` return type changed `Codec` → `MapCodec` (NeoForge-side, not vanilla) —
+  GLM `CODEC` fields must use `RecordCodecBuilder.mapCodec(...)` not `.create(...)`.
+- `RegisterEvent.getForgeRegistry()` REMOVED → `event.getRegistry(ResourceKey<Registry<T>>)` (typed, nullable).
+- `ItemStack`/`Item` capability instance hooks removed (`ICapabilityProvider`, `Item.initCapabilities()`) —
+  same shift as the BlockEntity capability model above: expose a plain getter method, wire it via
+  `RegisterCapabilitiesEvent.registerItem(...)` in the owning mod.
+- **Decompiled vanilla 1.21.1 source available locally** for checking real signatures instead of guessing:
+  `C:\Users\Adolfo\.gradle\caches\neoformruntime\intermediate_results\decompile_ddcc63f9ea61da77e44ccaa505f486b70f81cc75_output.jar`
+  contains `net/minecraft/**/*.java`. Inspect with `unzip -p <jar> <path/To/Class.java>`.
+  NeoForge's own source: `net.neoforged:neoforge:<version>-sources.jar` in `.gradle/caches/modules-2/files-2.1/`.
 
 ## Commands
 Run from `C:/Users/Adolfo/source/repos/Mantle-neo`:
