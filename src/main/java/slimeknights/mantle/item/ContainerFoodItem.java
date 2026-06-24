@@ -1,6 +1,5 @@
 package slimeknights.mantle.item;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -16,7 +15,6 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -42,28 +40,26 @@ public class ContainerFoodItem extends Item {
   }
 
   /** Adds effects to the tooltip */
-  public static void addEffectTooltip(FoodProperties food, List<Component> tooltip) {
+  public static void addEffectTooltip(FoodProperties food, List<Component> tooltip, float tickRate) {
     // add effects to the tooltip, code based on potion items
-    for (Pair<MobEffectInstance, Float> pair : food.getEffects()) {
-      MobEffectInstance effect = pair.getFirst();
-      if (effect != null) {
-        MutableComponent mutable = Component.translatable(effect.getDescriptionId());
-        if (effect.getAmplifier() > 0) {
-          mutable = Component.translatable("potion.withAmplifier", mutable, Component.translatable("potion.potency." + effect.getAmplifier()));
-        }
-        if (effect.getDuration() > 20) {
-          mutable = Component.translatable("potion.withDuration", mutable, MobEffectUtil.formatDuration(effect, 1.0f));
-        }
-        tooltip.add(mutable.withStyle(effect.getEffect().getCategory().getTooltipFormatting()));
+    for (FoodProperties.PossibleEffect possible : food.effects()) {
+      MobEffectInstance effect = possible.effect();
+      MutableComponent mutable = Component.translatable(effect.getDescriptionId());
+      if (effect.getAmplifier() > 0) {
+        mutable = Component.translatable("potion.withAmplifier", mutable, Component.translatable("potion.potency." + effect.getAmplifier()));
       }
+      if (effect.getDuration() > 20) {
+        mutable = Component.translatable("potion.withDuration", mutable, MobEffectUtil.formatDuration(effect, 1.0f, tickRate));
+      }
+      tooltip.add(mutable.withStyle(effect.getEffect().value().getCategory().getTooltipFormatting()));
     }
   }
 
   @Override
-  public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+  public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
     FoodProperties food = stack.getFoodProperties(null);
     if (food != null) {
-      addEffectTooltip(food, tooltip);
+      addEffectTooltip(food, tooltip, context.tickRate());
     }
   }
 
