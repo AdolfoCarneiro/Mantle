@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.recipe.MantleRecipes;
+import slimeknights.mantle.util.RegistryHelper;
 import slimeknights.mantle.util.typed.TypedMap;
 
 import java.util.Arrays;
@@ -65,7 +66,7 @@ public class PotionIngredient extends ItemIngredient {
     Holder<Potion> holder = BuiltInRegistries.POTION.wrapAsHolder(potion);
     Stream<ItemStack> fromItems = items.stream().map(item -> PotionContents.createItemStack(item, holder));
     Stream<ItemStack> fromTag = tag == null ? Stream.empty() :
-      BuiltInRegistries.ITEM.getTagOrEmpty(tag).stream().map(h -> PotionContents.createItemStack(h.value(), holder));
+      RegistryHelper.getTagValueStream(BuiltInRegistries.ITEM, tag).map(item -> PotionContents.createItemStack(item, holder));
     return Stream.concat(fromItems, fromTag);
   }
 

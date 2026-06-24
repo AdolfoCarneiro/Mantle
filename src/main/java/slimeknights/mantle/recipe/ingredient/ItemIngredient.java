@@ -14,6 +14,7 @@ import slimeknights.mantle.data.loadable.array.ArrayLoadable;
 import slimeknights.mantle.data.loadable.field.LoadableField;
 import slimeknights.mantle.data.loadable.field.RecordField;
 import slimeknights.mantle.data.loadable.field.UnsyncedField;
+import slimeknights.mantle.util.RegistryHelper;
 import slimeknights.mantle.util.typed.TypedMap;
 
 import javax.annotation.Nullable;
@@ -49,7 +50,7 @@ public abstract class ItemIngredient implements ICustomIngredient {
   public Stream<ItemStack> getItems() {
     Stream<ItemStack> fromItems = items.stream().map(ItemStack::new);
     Stream<ItemStack> fromTag = tag == null ? Stream.empty() :
-      BuiltInRegistries.ITEM.getTagOrEmpty(tag).stream().map(h -> new ItemStack(h.value()));
+      RegistryHelper.getTagValueStream(BuiltInRegistries.ITEM, tag).map(ItemStack::new);
     return Stream.concat(fromItems, fromTag);
   }
 
@@ -93,7 +94,7 @@ public abstract class ItemIngredient implements ICustomIngredient {
       // expand tag on server so client receives flat item list
       Stream<Item> fromItems = parent.items.stream();
       Stream<Item> fromTag = parent.tag == null ? Stream.empty() :
-        BuiltInRegistries.ITEM.getTagOrEmpty(parent.tag).stream().map(h -> h.value());
+        RegistryHelper.getTagValueStream(BuiltInRegistries.ITEM, parent.tag);
       ITEM_LIST.encode(buffer, Stream.concat(fromItems, fromTag).toList());
     }
   }

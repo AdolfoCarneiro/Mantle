@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
@@ -113,13 +114,13 @@ public abstract class EntityIngredient implements Predicate<EntityType<?>>, IAmL
 
   /** @deprecated use {@link #LOADABLE} with {@link Loadable#encode(FriendlyByteBuf, Object)} */
   @Deprecated(forRemoval = true)
-  public void write(FriendlyByteBuf buffer) {
+  public void write(RegistryFriendlyByteBuf buffer) {
     SET_MATCH.encode(buffer, this);
   }
 
   /** @deprecated use {@link #LOADABLE} with {@link Loadable#decode(FriendlyByteBuf)} */
   @Deprecated(forRemoval = true)
-  public static EntityIngredient read(FriendlyByteBuf buffer) {
+  public static EntityIngredient read(RegistryFriendlyByteBuf buffer) {
     return SET_MATCH.decode(buffer);
   }
 
