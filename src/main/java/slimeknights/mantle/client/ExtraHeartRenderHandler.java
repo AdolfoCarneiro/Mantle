@@ -82,7 +82,7 @@ public class ExtraHeartRenderHandler {
     if (renderer == HeartRenderer.DISABLE || event.isCanceled() || !VanillaGuiLayers.PLAYER_HEALTH.equals(event.getName())) {
       return;
     }
-    if (mc.options.hideGui || mc.player == null || mc.player.isSpectator()) {
+    if (mc.options.hideGui || mc.player == null || mc.player.isSpectator() || mc.player.isCreative()) {
       return;
     }
     Entity renderViewEnity = this.mc.getCameraEntity();
