@@ -6,8 +6,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.util.GsonHelper;
-import net.neoforged.neoforge.common.crafting.CraftingHelper;
 import net.neoforged.neoforge.common.conditions.ICondition;
 
 import java.lang.reflect.Type;
@@ -20,11 +20,11 @@ public class ConditionSerializer implements JsonDeserializer<ICondition>, JsonSe
 
   @Override
   public ICondition deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
-    return CraftingHelper.getCondition(GsonHelper.convertToJsonObject(json, "condition"));
+    return ICondition.CODEC.parse(JsonOps.INSTANCE, GsonHelper.convertToJsonObject(json, "condition")).getOrThrow(JsonParseException::new);
   }
 
   @Override
   public JsonElement serialize(ICondition condition, Type type, JsonSerializationContext context) {
-    return CraftingHelper.serialize(condition);
+    return ICondition.CODEC.encodeStart(JsonOps.INSTANCE, condition).getOrThrow();
   }
 }

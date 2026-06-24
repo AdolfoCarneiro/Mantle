@@ -68,7 +68,7 @@ public class HarvestTiersCommand {
     } else {
       for (Tier tier : sortedTiers) {
         output.append("\n* ");
-        TagKey<Block> tag = tier.getTag();
+        TagKey<Block> tag = tier.getIncorrectBlocksForDrops();
         ResourceLocation id = getTierName(tier);
         if (tag != null) {
           output.append(Component.translatable("command.mantle.harvest_tiers.tag", id, getTagComponent(tag)));

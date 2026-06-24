@@ -6,8 +6,8 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.storage.loot.LootDataType;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import slimeknights.mantle.command.argument.TagSourceArgument;
@@ -47,8 +47,8 @@ public class MantleCommand {
     TagSourceArgument.registerSuggestions();
 
     // register interesting sources
-    SourcesCommand.register(LootDataType.TABLE.directory(), (context, builder)
-      -> SharedSuggestionProvider.suggestResource(context.getSource().getServer().getLootData().getKeys(LootDataType.TABLE), builder));
+    SourcesCommand.register("loot_tables", (context, builder)
+      -> SharedSuggestionProvider.suggestResource(context.getSource().getServer().registryAccess().registryOrThrow(Registries.LOOT_TABLE).keySet(), builder));
     SourcesCommand.register("recipes", (context, builder)
       -> SharedSuggestionProvider.suggestResource(context.getSource().getRecipeNames(), builder));
 
