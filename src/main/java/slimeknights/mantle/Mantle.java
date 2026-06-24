@@ -10,9 +10,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import slimeknights.mantle.block.entity.MantleHangingSignBlockEntity;
 import slimeknights.mantle.block.entity.MantleSignBlockEntity;
+import slimeknights.mantle.config.Config;
 import slimeknights.mantle.network.MantlePayloadInit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,6 +53,8 @@ public class Mantle {
     BLOCK_ENTITY_TYPES.register(modEventBus);
     modEventBus.addListener(MantlePayloadInit::register);
     modEventBus.addListener(MantleCapabilities::register);
+    modContainer.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
+    modContainer.registerConfig(ModConfig.Type.SERVER, Config.SERVER_SPEC);
     logger.info("Mantle Phase 1 Task 7: capabilities layer loaded.");
     // Phase 1 restores: config registration, MantleTags, network, recipes,
     // capabilities, datagen, predicates, client events. Intentionally empty here.
