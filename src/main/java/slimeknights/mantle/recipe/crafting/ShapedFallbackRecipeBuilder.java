@@ -6,6 +6,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.neoforged.neoforge.common.conditions.ICondition;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,6 +66,17 @@ public class ShapedFallbackRecipeBuilder {
           throw new IllegalStateException("Expected ShapedRecipe, got " + recipe.getClass());
         }
         output.accept(id, fallback, advancement);
+      }
+
+      @Override
+      public void accept(ResourceLocation id, net.minecraft.world.item.crafting.Recipe<?> recipe, AdvancementHolder advancement, ICondition... conditions) {
+        ShapedFallbackRecipe fallback;
+        if (recipe instanceof ShapedRecipe shaped) {
+          fallback = new ShapedFallbackRecipe(shaped, alts);
+        } else {
+          throw new IllegalStateException("Expected ShapedRecipe, got " + recipe.getClass());
+        }
+        output.accept(id, fallback, advancement, conditions);
       }
 
       @Override

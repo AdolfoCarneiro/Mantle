@@ -5,12 +5,14 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.ItemLike;
 import slimeknights.mantle.data.loadable.LoadableCodec;
 import slimeknights.mantle.data.loadable.Loadables;
@@ -140,8 +142,8 @@ public abstract class ItemOutput implements Supplier<ItemStack> {
    * Writes this output to the packet buffer
    * @param buffer  Packet buffer instance
    */
-  public void write(FriendlyByteBuf buffer) {
-    buffer.writeItem(get());
+  public void write(RegistryFriendlyByteBuf buffer) {
+    ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, get());
   }
 
   /**
@@ -149,8 +151,8 @@ public abstract class ItemOutput implements Supplier<ItemStack> {
    * @param buffer  Buffer instance
    * @return  Item output
    */
-  public static ItemOutput read(FriendlyByteBuf buffer) {
-    return fromStack(buffer.readItem());
+  public static ItemOutput read(RegistryFriendlyByteBuf buffer) {
+    return fromStack(ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer));
   }
 
   /** Class for an output that is just an item, simplifies NBT for serializing as vanilla forces NBT to be set for tools and forge goes through extra steps when NBT is set */
@@ -232,7 +234,7 @@ public abstract class ItemOutput implements Supplier<ItemStack> {
         }
         cachedResult = new ItemStack(preference.orElseThrow(), count);
         if (nbt != null) {
-          cachedResult.setTag(nbt.copy());
+          cachedResult.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt.copy()));
         }
       }
       return cachedResult;
@@ -326,12 +328,12 @@ public abstract class ItemOutput implements Supplier<ItemStack> {
     }
 
     @Override
-    public ItemOutput decode(FriendlyByteBuf buffer, TypedMap context) {
+    public ItemOutput decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
       return fromStack(stack.decode(buffer, context));
     }
 
     @Override
-    public void encode(FriendlyByteBuf buffer, ItemOutput object) {
+    public void encode(RegistryFriendlyByteBuf buffer, ItemOutput object) {
       stack.encode(buffer, object.get());
     }
 

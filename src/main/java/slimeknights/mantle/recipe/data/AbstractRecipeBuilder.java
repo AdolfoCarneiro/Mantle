@@ -82,7 +82,7 @@ public abstract class AbstractRecipeBuilder<T extends AbstractRecipeBuilder<T>> 
     for (Map.Entry<String, Criterion<?>> entry : criteria.entrySet()) {
       builder.addCriterion(entry.getKey(), entry.getValue());
     }
-    return builder.save(output.advancement(), advancementId);
+    return builder.build(advancementId);
   }
 
   /**

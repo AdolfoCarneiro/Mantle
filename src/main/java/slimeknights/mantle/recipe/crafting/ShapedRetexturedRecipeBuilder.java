@@ -11,6 +11,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.neoforged.neoforge.common.conditions.ICondition;
 
 @SuppressWarnings("unused")
 @RequiredArgsConstructor(staticName = "fromShaped")
@@ -85,6 +86,17 @@ public class ShapedRetexturedRecipeBuilder {
           throw new IllegalStateException("Expected ShapedRecipe, got " + recipe.getClass());
         }
         output.accept(id, retextured, advancement);
+      }
+
+      @Override
+      public void accept(ResourceLocation id, Recipe<?> recipe, AdvancementHolder advancement, ICondition... conditions) {
+        ShapedRetexturedRecipe retextured;
+        if (recipe instanceof ShapedRecipe shaped) {
+          retextured = new ShapedRetexturedRecipe(shaped, texture, matchAll);
+        } else {
+          throw new IllegalStateException("Expected ShapedRecipe, got " + recipe.getClass());
+        }
+        output.accept(id, retextured, advancement, conditions);
       }
 
       @Override

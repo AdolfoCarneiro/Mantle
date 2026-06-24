@@ -35,7 +35,7 @@ public class ShapedFallbackRecipe extends ShapedRecipe {
   }
 
   public ShapedFallbackRecipe(ShapedRecipe base, List<ResourceLocation> alternatives) {
-    super(base.group, base.category, base.pattern, base.result, base.showNotification);
+    super(base.getGroup(), base.category(), base.pattern, base.result, base.showNotification());
     this.alternatives = alternatives;
   }
 
@@ -67,11 +67,11 @@ public class ShapedFallbackRecipe extends ShapedRecipe {
 
   public static class Serializer implements RecipeSerializer<ShapedFallbackRecipe> {
     public static final MapCodec<ShapedFallbackRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
-      Codec.STRING.optionalFieldOf("group", "").forGetter(r -> r.group),
-      CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.UNKNOWN).forGetter(r -> r.category),
+      Codec.STRING.optionalFieldOf("group", "").forGetter(ShapedFallbackRecipe::getGroup),
+      CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC).forGetter(ShapedFallbackRecipe::category),
       ShapedRecipePattern.MAP_CODEC.forGetter(r -> r.pattern),
       ItemStack.STRICT_CODEC.fieldOf("result").forGetter(r -> r.result),
-      Codec.BOOL.optionalFieldOf("show_notification", true).forGetter(r -> r.showNotification),
+      Codec.BOOL.optionalFieldOf("show_notification", true).forGetter(ShapedFallbackRecipe::showNotification),
       ResourceLocation.CODEC.listOf().fieldOf("alternatives").forGetter(r -> r.alternatives)
     ).apply(inst, ShapedFallbackRecipe::new));
 

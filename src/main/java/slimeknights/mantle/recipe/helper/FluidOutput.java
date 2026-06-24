@@ -3,9 +3,11 @@ package slimeknights.mantle.recipe.helper;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 import slimeknights.mantle.data.loadable.Loadables;
@@ -121,8 +123,8 @@ public abstract class FluidOutput implements Supplier<FluidStack> {
    * Writes this output to the packet buffer
    * @param buffer  Packet buffer instance
    */
-  public void write(FriendlyByteBuf buffer) {
-    buffer.writeFluidStack(get());
+  public void write(RegistryFriendlyByteBuf buffer) {
+    FluidStack.OPTIONAL_STREAM_CODEC.encode(buffer, get());
   }
 
   /**
@@ -130,8 +132,8 @@ public abstract class FluidOutput implements Supplier<FluidStack> {
    * @param buffer  Buffer instance
    * @return  Item output
    */
-  public static FluidOutput read(FriendlyByteBuf buffer) {
-    return fromStack(buffer.readFluidStack());
+  public static FluidOutput read(RegistryFriendlyByteBuf buffer) {
+    return fromStack(FluidStack.OPTIONAL_STREAM_CODEC.decode(buffer));
   }
 
   /** Class for an output that is just an item, simplifies NBT for serializing as vanilla forces NBT to be set for tools and forge goes through extra steps when NBT is set */
@@ -203,7 +205,10 @@ public abstract class FluidOutput implements Supplier<FluidStack> {
         if (preference.isEmpty()) {
           return FluidStack.EMPTY;
         }
-        cachedResult = new FluidStack(preference.orElseThrow(), amount, nbt);
+        cachedResult = new FluidStack(preference.orElseThrow(), amount);
+        if (nbt != null) {
+          cachedResult.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
+        }
       }
       return cachedResult;
     }
@@ -260,12 +265,12 @@ public abstract class FluidOutput implements Supplier<FluidStack> {
     }
 
     @Override
-    public FluidOutput decode(FriendlyByteBuf buffer, TypedMap context) {
+    public FluidOutput decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
       return fromStack(stack.decode(buffer, context));
     }
 
     @Override
-    public void encode(FriendlyByteBuf buffer, FluidOutput object) {
+    public void encode(RegistryFriendlyByteBuf buffer, FluidOutput object) {
       stack.encode(buffer, object.get());
     }
 
