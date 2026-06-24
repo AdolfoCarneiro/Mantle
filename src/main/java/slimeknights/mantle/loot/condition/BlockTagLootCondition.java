@@ -37,7 +37,7 @@ public class BlockTagLootCondition implements LootItemCondition {
   }
 
   public BlockTagLootCondition(TagKey<Block> tag, StatePropertiesPredicate.Builder builder) {
-    this(tag, builder.build());
+    this(tag, builder.build().orElse(ANY_PROPERTIES));
   }
 
   @Override
