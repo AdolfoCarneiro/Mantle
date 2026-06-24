@@ -6,7 +6,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexSorting;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -30,6 +29,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 import org.apache.commons.lang3.text.WordUtils;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fStack;
 import org.lwjgl.opengl.GL11;
 import slimeknights.mantle.Mantle;
 import slimeknights.mantle.client.book.BookLoader;
@@ -209,9 +209,9 @@ public class BookCommand {
       Matrix4f matrix = (new Matrix4f()).setOrtho(0.0F, width, height, 0.0F, 1000.0F, zFar);
       RenderSystem.setProjectionMatrix(matrix, VertexSorting.ORTHOGRAPHIC_Z);
 
-      PoseStack stack = RenderSystem.getModelViewStack();
-      stack.pushPose();
-      stack.setIdentity();
+      Matrix4fStack stack = RenderSystem.getModelViewStack();
+      stack.pushMatrix();
+      stack.identity();
       stack.translate(0, 0, 1000F - zFar);
       stack.scale(scale, scale, 1);
       RenderSystem.applyModelViewMatrix();
@@ -302,7 +302,7 @@ public class BookCommand {
           }
         }
       } finally {
-        stack.popPose();
+        stack.popMatrix();
         RenderSystem.applyModelViewMatrix();
         RenderSystem.defaultBlendFunc();
         target.unbindWrite();
