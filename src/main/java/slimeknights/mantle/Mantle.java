@@ -15,6 +15,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import slimeknights.mantle.block.entity.MantleHangingSignBlockEntity;
 import slimeknights.mantle.block.entity.MantleSignBlockEntity;
 import slimeknights.mantle.config.Config;
+import slimeknights.mantle.loot.MantleLoot;
 import slimeknights.mantle.network.MantlePayloadInit;
 import slimeknights.mantle.recipe.MantleRecipes;
 import org.apache.logging.log4j.LogManager;
@@ -57,6 +58,7 @@ public class Mantle {
     modContainer.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
     modContainer.registerConfig(ModConfig.Type.SERVER, Config.SERVER_SPEC);
     MantleRecipes.init(modEventBus);
+    modEventBus.addListener(MantleLoot::registerGlobalLootModifiers);
     logger.info("Mantle Phase 1 Task 7: capabilities layer loaded.");
     // Phase 1 restores: config registration, MantleTags, network, recipes,
     // capabilities, datagen, predicates, client events. Intentionally empty here.
