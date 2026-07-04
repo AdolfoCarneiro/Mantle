@@ -2,13 +2,20 @@ package slimeknights.mantle.data.loadable.common;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import io.netty.handler.codec.EncoderException;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.component.CustomData;
 import slimeknights.mantle.data.loadable.ErrorFactory;
 import slimeknights.mantle.data.loadable.Loadable;
@@ -44,7 +51,7 @@ public class ItemStackLoadable {
   /** Field for item stack count that allows empty */
   private static final LoadableField<Integer,ItemStack> COUNT = IntLoadable.FROM_ZERO.defaultField("count", 1, true, ItemStack::getCount);
   /** Field for item stack count that allows empty */
-  private static final LoadableField<CompoundTag,ItemStack> NBT = NBTLoadable.ALLOW_STRING.nullableField("nbt", stack -> stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : null);
+  private static final LoadableField<CompoundTag,ItemStack> NBT = NBTLoadable.ALLOW_STRING.nullableField("nbt", ItemStackLoadable::getNbt);
 
 
   /* Optional */
@@ -71,6 +78,11 @@ public class ItemStackLoadable {
 
   /* Helpers */
 
+  /** Legacy NBT key vanilla used pre-1.21 to store a stack's potion type; 1.21 moved this to the {@link DataComponents#POTION_CONTENTS}
+   * component. This loadable still reads/writes it under the old key so recipes keep their pre-1.21 JSON shape and this
+   * loadable's schema (item/count/nbt) doesn't need a new field just for potions - see PARITY.md P28. */
+  private static final String POTION_NBT_KEY = "Potion";
+
   /** Makes an item stack from the given parameters */
   private static ItemStack makeStack(Item item, int count, @Nullable CompoundTag nbt) {
     if (item == Items.AIR || count == 0) {
@@ -78,9 +90,33 @@ public class ItemStackLoadable {
     }
     ItemStack stack = new ItemStack(item, count);
     if (nbt != null) {
-      stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
+      if (nbt.contains(POTION_NBT_KEY, Tag.TAG_STRING)) {
+        ResourceLocation potionId = ResourceLocation.parse(nbt.getString(POTION_NBT_KEY));
+        Holder<Potion> potion = BuiltInRegistries.POTION.getHolder(potionId)
+                                                         .orElseThrow(() -> new JsonSyntaxException("Unknown potion " + potionId));
+        stack.set(DataComponents.POTION_CONTENTS, new PotionContents(potion));
+        if (nbt.size() > 1) {
+          CompoundTag remaining = nbt.copy();
+          remaining.remove(POTION_NBT_KEY);
+          stack.set(DataComponents.CUSTOM_DATA, CustomData.of(remaining));
+        }
+      } else {
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
+      }
     }
     return stack;
+  }
+
+  /** Inverse of the potion handling in {@link #makeStack(Item, int, CompoundTag)}: synthesizes the legacy "Potion" tag from {@link DataComponents#POTION_CONTENTS} if present */
+  @Nullable
+  private static CompoundTag getNbt(ItemStack stack) {
+    CompoundTag nbt = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : null;
+    PotionContents potionContents = stack.get(DataComponents.POTION_CONTENTS);
+    if (potionContents != null && potionContents.potion().isPresent()) {
+      nbt = nbt == null ? new CompoundTag() : nbt.copy();
+      nbt.putString(POTION_NBT_KEY, BuiltInRegistries.POTION.getKey(potionContents.potion().get().value()).toString());
+    }
+    return nbt;
   }
 
   /** Creates a non-empty variant of the loadable */
@@ -134,7 +170,7 @@ public class ItemStackLoadable {
 
     @Override
     public JsonElement serialize(ItemStack stack) {
-      if ((this == FIXED_COUNT || stack.getCount() == 1) && !stack.has(DataComponents.CUSTOM_DATA)) {
+      if ((this == FIXED_COUNT || stack.getCount() == 1) && getNbt(stack) == null) {
         return OPTIONAL_ITEM.serialize(stack);
       }
       return RecordLoadable.super.serialize(stack);
@@ -145,22 +181,13 @@ public class ItemStackLoadable {
 
     @Override
     public ItemStack decode(RegistryFriendlyByteBuf buffer, TypedMap context) {
-      // not using makeItemStack as we need to set the share tag NBT here
       Item item = ITEM.decode(buffer, context);
       int count = 1;
       if (this == READ_COUNT) {
         count = COUNT.decode(buffer, context);
       }
       CompoundTag nbt = buffer.readNbt();
-      // not using make stack because we want to set share tag
-      if (item == Items.AIR || count <= 0) {
-        return ItemStack.EMPTY;
-      }
-      ItemStack stack = new ItemStack(item, count);
-      if (nbt != null && !nbt.isEmpty()) {
-        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
-      }
-      return stack;
+      return makeStack(item, count, nbt != null && nbt.isEmpty() ? null : nbt);
     }
 
     @Override
@@ -169,7 +196,7 @@ public class ItemStackLoadable {
       if (this == READ_COUNT) {
         COUNT.encode(buffer, stack);
       }
-      buffer.writeNbt(stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : null);
+      buffer.writeNbt(getNbt(stack));
     }
   }
 }
