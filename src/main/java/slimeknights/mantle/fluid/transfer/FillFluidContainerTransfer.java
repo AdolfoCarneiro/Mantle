@@ -19,6 +19,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 import slimeknights.mantle.Mantle;
+import slimeknights.mantle.recipe.data.ItemNameIngredient;
 import slimeknights.mantle.recipe.helper.ItemOutput;
 import slimeknights.mantle.recipe.ingredient.FluidIngredient;
 import slimeknights.mantle.util.JsonHelper;
@@ -75,7 +76,7 @@ public class FillFluidContainerTransfer implements IFluidContainerTransfer.WithD
   public JsonObject serialize(JsonSerializationContext context) {
     JsonObject json = new JsonObject();
     json.addProperty("type", ID.toString());
-    json.add("input", Ingredient.CODEC.encodeStart(JsonOps.INSTANCE, input).getOrThrow());
+    json.add("input", ItemNameIngredient.serialize(input));
     if (!result.isEmpty()) {
       json.add("result", result.serialize(false));
     }

@@ -16,6 +16,7 @@ import slimeknights.mantle.block.entity.MantleHangingSignBlockEntity;
 import slimeknights.mantle.block.entity.MantleSignBlockEntity;
 import slimeknights.mantle.config.Config;
 import slimeknights.mantle.network.MantlePayloadInit;
+import slimeknights.mantle.recipe.MantleRecipes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -55,6 +56,7 @@ public class Mantle {
     modEventBus.addListener(MantleCapabilities::register);
     modContainer.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
     modContainer.registerConfig(ModConfig.Type.SERVER, Config.SERVER_SPEC);
+    MantleRecipes.init(modEventBus);
     logger.info("Mantle Phase 1 Task 7: capabilities layer loaded.");
     // Phase 1 restores: config registration, MantleTags, network, recipes,
     // capabilities, datagen, predicates, client events. Intentionally empty here.
