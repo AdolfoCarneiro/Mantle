@@ -103,7 +103,12 @@ public class ItemNameIngredient implements ICustomIngredient {
       if (custom instanceof CompoundIngredient compound) {
         JsonArray array = new JsonArray();
         for (Ingredient child : compound.children()) {
-          array.add(serialize(child));
+          JsonElement childJson = serialize(child);
+          if (childJson.isJsonArray()) {
+            array.addAll(childJson.getAsJsonArray());
+          } else {
+            array.add(childJson);
+          }
         }
         return array;
       }
