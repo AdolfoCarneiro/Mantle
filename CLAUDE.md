@@ -12,9 +12,16 @@ Plan:   `C:/Users/Adolfo/source/repos/tinkers-new/docs/superpowers/plans/2026-06
 - NeoForge target (compiled):    `src/main/java/slimeknights/mantle/`
 - To port a package: copy from quarantine → apply transforms → delete quarantine copy → commit
 
-## CRITICAL: Porting approach — use bulk bash, NOT subagents
-Subagents read/write files one-by-one: 100+ tool calls per task, hit rate limits, take 60+ min.
-**Correct approach (takes ~2 min per task):**
+## Porting approach — histórico do bulk-copy do Mantle (NÃO é mais a regra geral)
+
+> **Regra de execução canônica (atual):** o processo de trabalho é o orquestrador+subagent definido
+> em `../tinkers-new/.superpowers/sdd/orchestrator-protocol.md` (decidido 2026-07-02, fases F1–F6),
+> incluindo a regra de git safety. A regra antiga "use bulk bash, NOT subagents" abaixo valia SÓ
+> para o bulk-copy mecânico quarantine→main da Phase 1 do Mantle (concluído) — nunca foi proibição
+> geral de subagents. Para trabalho de fase, siga o protocolo canônico, não esta seção.
+
+Referência histórica do bulk-copy (útil se sobrar algum pacote em `src/_quarantine/`): copiar em
+massa via bash é ~2 min/task vs. 60+ min de subagent file-by-file —
 ```bash
 # 1. Copy files
 cp -r src/_quarantine/java/slimeknights/mantle/PACKAGE src/main/java/slimeknights/mantle/
