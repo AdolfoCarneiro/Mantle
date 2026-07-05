@@ -21,6 +21,7 @@ import slimeknights.mantle.recipe.crafting.ShapedFallbackRecipe;
 import slimeknights.mantle.recipe.crafting.ShapedRetexturedRecipe;
 import slimeknights.mantle.recipe.helper.LoadableRecipeSerializer;
 import slimeknights.mantle.recipe.ingredient.FluidContainerIngredient;
+import slimeknights.mantle.recipe.ingredient.NBTIngredient;
 import slimeknights.mantle.recipe.ingredient.PotionDisplayIngredient;
 import slimeknights.mantle.recipe.ingredient.PotionIngredient;
 
@@ -52,6 +53,9 @@ public class MantleRecipes {
     INGREDIENT_TYPES.register("potion", () -> new IngredientType<>(PotionIngredient.CODEC, PotionIngredient.STREAM_CODEC));
   public static final DeferredHolder<IngredientType<?>, IngredientType<PotionDisplayIngredient>> POTION_DISPLAY_INGREDIENT =
     INGREDIENT_TYPES.register("potion_display", () -> new IngredientType<>(PotionDisplayIngredient.CODEC, PotionDisplayIngredient.STREAM_CODEC));
+  /** NBT sensitive ingredient, replaces Forge's dropped {@code forge:nbt} type */
+  public static final DeferredHolder<IngredientType<?>, IngredientType<NBTIngredient>> NBT_INGREDIENT =
+    INGREDIENT_TYPES.register("nbt", () -> new IngredientType<>(NBTIngredient.CODEC, NBTIngredient.STREAM_CODEC));
 
   // crafting
   public static final DeferredHolder<RecipeSerializer<?>, ShapedFallbackRecipe.Serializer> CRAFTING_SHAPED_FALLBACK =
