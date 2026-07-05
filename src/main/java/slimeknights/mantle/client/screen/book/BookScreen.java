@@ -252,6 +252,14 @@ public class BookScreen extends Screen {
     super.render(graphics, mouseX, mouseY, partialTicks);
   }
 
+  @Override
+  protected void renderBlurredBackground(float partialTicks) {
+    // no-op: full-screen opaque book content, no world/background to blur behind it.
+    // Vanilla's default renderBackground() (called via super.render() at the end of our render())
+    // would otherwise blur the ALREADY-DRAWN book content itself, since this screen paints its
+    // content before calling super.render() — see Screen#renderBlurredBackground.
+  }
+
   private boolean shouldRenderPage(int pageNum, boolean rightSide) {
     if(!rightSide) {
       return pageNum != 0;
