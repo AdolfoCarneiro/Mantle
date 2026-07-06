@@ -230,21 +230,45 @@ public class BookScreen extends Screen {
 
       // TODO: can we draw the left all at once then the right all at once to reduce number of matrix operations?
       // we did that in 1.16.5 - causes tooltips of left to draw under elements on right
+      // screen-space bounds of each page tile (same rectangle as the page background blit in
+      // renderPageBackground / renderUnderLayer). Used to clip page content that overflows the page.
+      int pageTop = this.height / 2 - PAGE_HEIGHT_UNSCALED / 2;
+      int pageBottom = pageTop + PAGE_HEIGHT_UNSCALED;
+      int leftPageX0 = this.width / 2 - PAGE_WIDTH_UNSCALED;
+      int center = this.width / 2;
+      int rightPageX1 = center + PAGE_WIDTH_UNSCALED;
+
       for (ILayerRenderFunction layer : LAYERS) {
+        // Only clip the main content layer. The overlay layer draws tooltips, which legitimately
+        // extend beyond the page bounds and must not be clipped (enableScissor is GL state that
+        // would otherwise cut off tooltips near page edges).
+        boolean clip = layer == LAYERS[0];
         if(renderLeft) {
+          if (clip) {
+            graphics.enableScissor(leftPageX0, pageTop, center, pageBottom);
+          }
           matrixStack.pushPose();
           drawerTransform(matrixStack, false);
           matrixStack.scale(PAGE_SCALE, PAGE_SCALE, 1F);
           renderPageLayer(graphics, leftMX, mY, partialTicks, leftElements, layer);
           matrixStack.popPose();
+          if (clip) {
+            graphics.disableScissor();
+          }
         }
 
         if(renderRight) {
+          if (clip) {
+            graphics.enableScissor(center, pageTop, rightPageX1, pageBottom);
+          }
           matrixStack.pushPose();
           drawerTransform(matrixStack, true);
           matrixStack.scale(PAGE_SCALE, PAGE_SCALE, 1F);
           renderPageLayer(graphics, rightMX, mY, partialTicks, rightElements, layer);
           matrixStack.popPose();
+          if (clip) {
+            graphics.disableScissor();
+          }
         }
       }
     }
