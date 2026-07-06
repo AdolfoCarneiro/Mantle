@@ -136,18 +136,22 @@ public class FluidRenderer {
     v2 = boundUV(v2, !reverse);
 
     // if rotating by 90 or 270, swap U and V
+    // getU/getV take a 0-1 fraction of the sprite in 1.21.1 (old 1.20.1 getInterpolatedU/V took a
+    // 0-16, or 0-8 for flowing (half texture coordinates), pixel offset). u1/u2/v1/v2 are already
+    // bounded to 0-1 above, so converting the old pixel scale to a fraction is size/16 (1 for still,
+    // 0.5 for flowing) rather than the raw pixel size, which overshot the sprite's UV bounds.
     float minU, maxU, minV, maxV;
-    float size = flowing ? 8 : 16;
+    float scale = flowing ? 0.5f : 1f;
     if ((rotation % 180) == 90) {
-      minU = sprite.getU(v1 * size);
-      maxU = sprite.getU(v2 * size);
-      minV = sprite.getV(u1 * size);
-      maxV = sprite.getV(u2 * size);
+      minU = sprite.getU(v1 * scale);
+      maxU = sprite.getU(v2 * scale);
+      minV = sprite.getV(u1 * scale);
+      maxV = sprite.getV(u2 * scale);
     } else {
-      minU = sprite.getU(u1 * size);
-      maxU = sprite.getU(u2 * size);
-      minV = sprite.getV(v1 * size);
-      maxV = sprite.getV(v2 * size);
+      minU = sprite.getU(u1 * scale);
+      maxU = sprite.getU(u2 * scale);
+      minV = sprite.getV(v1 * scale);
+      maxV = sprite.getV(v2 * scale);
     }
     // based on rotation, put coords into place
     float u3, u4, v3, v4;
